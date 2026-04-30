@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -473,38 +474,53 @@ export default function BlockBuilder() {
   );
 
   return (
-    <main className='flex min-h-[100dvh] flex-col overflow-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
-      <header className='z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-3 py-2'>
-        <h1 className='whitespace-nowrap text-[15px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff] sm:text-[18px] lg:text-[20px]'>
-          Block Builder
-        </h1>
+    <main className='flex min-h-[100dvh] flex-col overflow-x-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
+      <header className='z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-4 py-4 sm:px-6 sm:py-5'>
+        <div className='flex items-center gap-2'>
+          <Image
+            alt='Pokopia logo'
+            className='h-14 w-14 rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-0.5 sm:h-16 sm:w-16'
+            height={64}
+            priority
+            src='/images/logo/pokopiaplannerdb.png'
+            width={64}
+          />
+          <h1 className='whitespace-nowrap text-[18px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff] sm:text-[22px] lg:text-[24px]'>
+            Block Builder
+          </h1>
+        </div>
         <p className='hidden whitespace-nowrap text-[10px] tracking-[0.1em] text-[#666] lg:block'>
           TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM
         </p>
         <div className='flex-1' />
-        <Link
-          className='whitespace-nowrap text-[12px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[13px] lg:text-[16px]'
-          href='/pokemon-explorer'
-        >
-          POKEMON ↗
-        </Link>
-        <Link
-          className='whitespace-nowrap text-[12px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[13px] lg:text-[16px]'
-          href='/items'
-        >
-          ITEMS ↗
-        </Link>
+        <nav className='flex w-full justify-end gap-3 border-t border-[#3a3a5c] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
+          <Link
+            className='whitespace-nowrap text-[12px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[13px] lg:text-[16px]'
+            href='/pokemon-explorer'
+          >
+            POKEMON ↗
+          </Link>
+          <Link
+            className='whitespace-nowrap text-[12px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[13px] lg:text-[16px]'
+            href='/items'
+          >
+            ITEMS ↗
+          </Link>
+        </nav>
       </header>
 
-      <div className='flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row'>
-        <div className='relative min-h-[46dvh] flex-1 lg:min-h-0' ref={wrapRef}>
+      <div className='flex flex-1 flex-col lg:min-h-0 lg:flex-row'>
+        <div
+          className='relative min-h-[38dvh] flex-1 sm:min-h-[44dvh] lg:min-h-0'
+          ref={wrapRef}
+        >
           <canvas className='block h-full w-full' ref={canvasRef} />
           <div className='pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#3a3a5c] bg-black/60 px-3 py-1 text-[9px] tracking-[0.1em] text-[#666] sm:text-[10px]'>
             Tap grid to place blocks
           </div>
         </div>
 
-        <aside className='flex w-full max-h-[42dvh] flex-shrink-0 flex-col overflow-hidden border-t-2 border-[#3a3a5c] bg-[rgba(10,10,20,.97)] lg:max-h-none lg:w-[220px] lg:border-l-2 lg:border-t-0 xl:w-[240px]'>
+        <aside className='flex w-full flex-shrink-0 flex-col border-t-2 border-[#3a3a5c] bg-[rgba(10,10,20,.97)] lg:w-[220px] lg:border-l-2 lg:border-t-0 xl:w-[240px]'>
           <div className='border-b border-[#3a3a5c] px-2 pb-1 pt-2'>
             <h2 className='mb-2 text-[10px] uppercase tracking-[0.2em] text-[#666]'>
               Blocks
@@ -579,7 +595,14 @@ export default function BlockBuilder() {
             </div>
           </div>
 
-          <div className='flex-1 overflow-y-auto px-2 pb-1 pt-2'>
+          <div className='border-b border-[#3a3a5c] px-2 py-2'>
+            <div className='flex items-center justify-between text-[11px] tracking-[0.1em] text-[#888]'>
+              TOTAL BLOCKS
+              <span className='text-[15px] font-bold text-white'>{total}</span>
+            </div>
+          </div>
+
+          <div className='max-h-[26dvh] overflow-y-auto px-2 pb-1 pt-2 sm:max-h-[30dvh] lg:flex-1 lg:max-h-none'>
             <h2 className='mb-2 text-[10px] uppercase tracking-[0.2em] text-[#666]'>
               Block Count
             </h2>

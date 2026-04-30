@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const FILTER_INPUT_CLASS =
   "w-full rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 py-2 text-[14px] text-[#e0e0e0] outline-none transition placeholder:text-[#666] focus:border-[#a0c4ff] focus:ring-1 focus:ring-[#a0c4ff]/40";
@@ -38,6 +39,31 @@ function chipTone(label) {
   return FAVORITE_CHIP_CLASSES[index];
 }
 
+function normalizeFavoriteValue(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function getCanonicalFavorite(rawValue, favoriteTypes) {
+  if (!rawValue) return "all";
+
+  const trimmedValue = rawValue.trim();
+  if (!trimmedValue) return "all";
+
+  const exactMatch = favoriteTypes.find(
+    (favoriteType) => favoriteType.toLowerCase() === trimmedValue.toLowerCase(),
+  );
+  if (exactMatch) return exactMatch;
+
+  const normalizedValue = normalizeFavoriteValue(trimmedValue);
+  if (!normalizedValue) return "all";
+
+  return (
+    favoriteTypes.find(
+      (favoriteType) => normalizeFavoriteValue(favoriteType) === normalizedValue,
+    ) ?? "all"
+  );
+}
+
 function toPublicImageSrc(src) {
   if (!src) return "";
   if (src.startsWith("http://") || src.startsWith("https://")) return src;
@@ -59,9 +85,40 @@ function matchesQuery(item, query) {
 }
 
 export function ItemsExplorer({ dataset }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [favoriteFilter, setFavoriteFilter] = useState("all");
   const [collapsedBySection, setCollapsedBySection] = useState({});
+
+  const favoriteFromUrl = useMemo(
+    () => getCanonicalFavorite(searchParams.get("favorite"), dataset.favoriteTypes),
+    [dataset.favoriteTypes, searchParams],
+  );
+
+  const applyFavoriteFilter = useCallback(
+    (nextFavorite) => {
+      const canonicalFavorite =
+        nextFavorite === "all"
+          ? "all"
+          : getCanonicalFavorite(nextFavorite, dataset.favoriteTypes);
+
+      setFavoriteFilter(canonicalFavorite);
+
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (canonicalFavorite === "all") {
+        nextParams.delete("favorite");
+      } else {
+        nextParams.set("favorite", canonicalFavorite);
+      }
+
+      const nextQuery = nextParams.toString();
+      const nextHref = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+      router.replace(nextHref, { scroll: false });
+    },
+    [dataset.favoriteTypes, pathname, router, searchParams],
+  );
 
   useEffect(() => {
     const initialState = {};
@@ -70,6 +127,12 @@ export function ItemsExplorer({ dataset }) {
     });
     setCollapsedBySection(initialState);
   }, [dataset.sections]);
+
+  useEffect(() => {
+    setFavoriteFilter((currentFavorite) =>
+      currentFavorite === favoriteFromUrl ? currentFavorite : favoriteFromUrl,
+    );
+  }, [favoriteFromUrl]);
 
   const isFiltering = query.trim().length > 0 || favoriteFilter !== "all";
 
@@ -122,7 +185,7 @@ export function ItemsExplorer({ dataset }) {
             </span>
             <select
               value={favoriteFilter}
-              onChange={(event) => setFavoriteFilter(event.target.value)}
+              onChange={(event) => applyFavoriteFilter(event.target.value)}
               className={FILTER_INPUT_CLASS}
             >
               <option value='all'>All Favorite Types</option>
@@ -263,13 +326,20 @@ export function ItemsExplorer({ dataset }) {
                               Favorite Tags
                             </p>
                             <div className='flex flex-wrap gap-1'>
-                              {visibleFavoriteTags.map((favoriteTag) => (
-                                <span
-                                  className={`${CHIP_BASE_CLASS} ${chipTone(favoriteTag)}`}
-                                  key={`${item.id}-${favoriteTag}`}
+                              {visibleFavoriteTags.map((favoriteTag, index) => (
+                                <button
+                                  aria-pressed={favoriteFilter === favoriteTag}
+                                  className={`${CHIP_BASE_CLASS} ${chipTone(favoriteTag)} cursor-pointer transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#a0c4ff]/60 ${
+                                    favoriteFilter === favoriteTag
+                                      ? "ring-1 ring-[#a0c4ff]/60"
+                                      : ""
+                                  }`}
+                                  key={`${item.id}-${favoriteTag}-${index}`}
+                                  onClick={() => applyFavoriteFilter(favoriteTag)}
+                                  type='button'
                                 >
                                   {favoriteTag}
-                                </span>
+                                </button>
                               ))}
                             </div>
                           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const FILTER_INPUT_CLASS =
@@ -282,13 +283,14 @@ export function PokemonExplorer({ dataset }) {
                 </p>
                 {pokemon.favorites.length > 0 ? (
                   <div className='mt-1 flex flex-wrap gap-1'>
-                    {pokemon.favorites.map((favoriteName) => (
-                      <span
-                        key={`${pokemon.number}-${pokemon.name}-favorite-${favoriteName}`}
-                        className={`${CHIP_BASE_CLASS} ${chipTone(favoriteName, FAVORITE_CHIP_CLASSES)}`}
+                    {pokemon.favorites.map((favoriteName, index) => (
+                      <Link
+                        key={`${pokemon.number}-${pokemon.name}-favorite-${favoriteName}-${index}`}
+                        className={`${CHIP_BASE_CLASS} ${chipTone(favoriteName, FAVORITE_CHIP_CLASSES)} transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#a0c4ff]/60`}
+                        href={`/items?favorite=${encodeURIComponent(favoriteName)}`}
                       >
                         {favoriteName}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 ) : (
