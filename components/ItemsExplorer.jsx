@@ -5,10 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const FILTER_INPUT_CLASS =
-  "w-full rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 py-2 text-[14px] text-[#e0e0e0] outline-none transition placeholder:text-[#666] focus:border-[#a0c4ff] focus:ring-1 focus:ring-[#a0c4ff]/40";
+  "w-full rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 py-2 text-[16px] text-[#e0e0e0] outline-none transition placeholder:text-[#666] focus:border-[#a0c4ff] focus:ring-1 focus:ring-[#a0c4ff]/40";
 
 const CHIP_BASE_CLASS =
-  "inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-medium tracking-[0.02em]";
+  "inline-flex items-center rounded-full border px-2 py-1 text-[13px] font-medium tracking-[0.02em]";
 
 const FAVORITE_CHIP_CLASSES = [
   "border-rose-400/35 bg-rose-500/15 text-rose-200",
@@ -400,7 +400,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
       <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[0_8px_30px_rgba(0,0,0,.25)] md:p-5'>
         <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           <label className='space-y-1 text-sm lg:col-span-2'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[13px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Search Items
             </span>
             <input
@@ -412,7 +412,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
           </label>
 
           <div className='space-y-1 text-sm'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[13px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Pokemon
             </span>
             <div className='relative' ref={pokemonPickerRef}>
@@ -434,7 +434,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
                       width={20}
                     />
                   ) : (
-                    <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                    <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[12px] text-[#7f8bb0]'>
                       *
                     </span>
                   )}
@@ -442,7 +442,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
                     {selectedPokemonOption?.name || "All Pokemon Favorites"}
                   </span>
                 </span>
-                <span className='text-[10px] text-[#8897bc]'>
+                <span className='text-[12px] text-[#8897bc]'>
                   {isPokemonPickerOpen ? "▲" : "▼"}
                 </span>
               </button>
@@ -450,7 +450,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
               {isPokemonPickerOpen ? (
                 <div className='absolute left-0 right-0 z-20 mt-1 max-h-72 overflow-y-auto rounded-md border border-[#3a3a5c] bg-[rgba(10,10,20,.98)] p-1 shadow-[0_10px_30px_rgba(0,0,0,.45)]'>
                   <button
-                    className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] transition ${
+                    className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[15px] transition ${
                       pokemonFilter === "all"
                         ? "bg-[rgba(160,196,255,.16)] text-[#e6edff]"
                         : "text-[#c7d1ea] hover:bg-white/8"
@@ -458,7 +458,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
                     onClick={() => applyPokemonFilter("all")}
                     type='button'
                   >
-                    <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                    <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[12px] text-[#7f8bb0]'>
                       *
                     </span>
                     <span className='truncate'>All Pokemon Favorites</span>
@@ -466,7 +466,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
 
                   {pokemonOptions.map((pokemonOption) => (
                     <button
-                      className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] transition ${
+                      className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[15px] transition ${
                         pokemonFilter === pokemonOption.id
                           ? "bg-[rgba(160,196,255,.16)] text-[#e6edff]"
                           : "text-[#c7d1ea] hover:bg-white/8"
@@ -486,7 +486,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
                           width={20}
                         />
                       ) : (
-                        <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                        <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[12px] text-[#7f8bb0]'>
                           ?
                         </span>
                       )}
@@ -499,7 +499,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
           </div>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[13px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Favorite Type
             </span>
             <select
@@ -518,12 +518,12 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
         </div>
 
         <div className='mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#3a3a5c] pt-3'>
-          <p className='text-[12px] tracking-[0.08em] text-[#777]'>
+          <p className='text-[14px] tracking-[0.08em] text-[#777]'>
             Showing {totalVisibleItems} of {dataset.totalItems} items
           </p>
           <div className='flex items-center gap-2'>
             <button
-              className={`rounded border px-2 py-1 text-[11px] tracking-[0.08em] transition ${
+              className={`rounded border px-2 py-1 text-[13px] tracking-[0.08em] transition ${
                 isFiltering
                   ? "border-[#4b567b] bg-white/5 text-[#b5c0df] hover:bg-white/10"
                   : "border-[#2d3250] bg-white/3 text-[#5f6b8f]"
@@ -535,7 +535,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
               RESET FILTERS
             </button>
             <button
-              className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.08em] text-[#9ba9cb] transition hover:bg-white/10'
+              className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] tracking-[0.08em] text-[#9ba9cb] transition hover:bg-white/10'
               onClick={() => {
                 const nextState = {};
                 dataset.sections.forEach((section) => {
@@ -548,7 +548,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
               EXPAND ALL
             </button>
             <button
-              className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.08em] text-[#9ba9cb] transition hover:bg-white/10'
+              className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] tracking-[0.08em] text-[#9ba9cb] transition hover:bg-white/10'
               onClick={() => {
                 const nextState = {};
                 dataset.sections.forEach((section) => {
@@ -569,7 +569,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
           {visibleSections.map((section) => (
             <button
               key={`nav-${section.id}`}
-              className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] uppercase tracking-[0.08em] text-[#8c9cc2] transition hover:border-[#a0c4ff] hover:text-[#a0c4ff]'
+              className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] uppercase tracking-[0.08em] text-[#8c9cc2] transition hover:border-[#a0c4ff] hover:text-[#a0c4ff]'
               onClick={() => {
                 setCollapsedBySection((prev) => ({
                   ...prev,
@@ -593,7 +593,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
       </div>
 
       {hasNoResults ? (
-        <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.75)] p-6 text-center text-[13px] tracking-[0.08em] text-[#777]'>
+        <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.75)] p-6 text-center text-[15px] tracking-[0.08em] text-[#777]'>
           No items match the current filters.
         </div>
       ) : null}
@@ -618,14 +618,14 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
                 }}
                 type='button'
               >
-                <span className='text-[13px] font-semibold uppercase tracking-[0.16em] text-[#a0c4ff]'>
+                <span className='text-[15px] font-semibold uppercase tracking-[0.16em] text-[#a0c4ff]'>
                   {section.title}
                 </span>
                 <span className='flex items-center gap-3'>
-                  <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[11px] text-[#a0c4ff]'>
+                  <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[13px] text-[#a0c4ff]'>
                     {section.filteredItems.length}
                   </span>
-                  <span className='text-[12px] text-[#7e8aac]'>
+                  <span className='text-[14px] text-[#7e8aac]'>
                     {collapsed ? "Show" : "Hide"}
                   </span>
                 </span>
@@ -659,10 +659,10 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
                             />
                           ) : null}
                           <div className='min-w-0'>
-                            <h3 className='text-[16px] font-semibold leading-tight text-[#e6edff]'>
+                            <h3 className='text-[18px] font-semibold leading-tight text-[#e6edff]'>
                               {item.name}
                             </h3>
-                            <p className='mt-1 text-[13px] leading-relaxed text-[#aeb9d3]'>
+                            <p className='mt-1 text-[15px] leading-relaxed text-[#aeb9d3]'>
                               {item.description || "No description provided."}
                             </p>
                           </div>
@@ -670,7 +670,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
 
                         {visibleFavoriteTags.length > 0 ? (
                           <div className='mt-3'>
-                            <p className='mb-1 text-[10px] uppercase tracking-[0.12em] text-[#777]'>
+                            <p className='mb-1 text-[12px] uppercase tracking-[0.12em] text-[#777]'>
                               Favorite Tags
                             </p>
                             <div className='flex flex-wrap gap-1'>
@@ -695,10 +695,10 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
 
                         {item.tagText ? (
                           <div className='mt-3'>
-                            <p className='mb-1 text-[10px] uppercase tracking-[0.12em] text-[#777]'>
+                            <p className='mb-1 text-[12px] uppercase tracking-[0.12em] text-[#777]'>
                               Tag
                             </p>
-                            <div className='inline-flex items-center gap-2 rounded-md border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.05em] text-[#c6d1eb]'>
+                            <div className='inline-flex items-center gap-2 rounded-md border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] tracking-[0.05em] text-[#c6d1eb]'>
                               {tagSpriteSrc ? (
                                 <Image
                                   alt=''
@@ -710,7 +710,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
                                   width={32}
                                 />
                               ) : (
-                                <span className='inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                                <span className='inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm border border-[#3a3a5c] bg-white/5 text-[12px] text-[#7f8bb0]'>
                                   ?
                                 </span>
                               )}
@@ -721,10 +721,10 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
 
                         {item.locations.length > 0 ? (
                           <div className='mt-3'>
-                            <p className='mb-1 text-[10px] uppercase tracking-[0.12em] text-[#777]'>
+                            <p className='mb-1 text-[12px] uppercase tracking-[0.12em] text-[#777]'>
                               Locations
                             </p>
-                            <ul className='space-y-1 text-[12px] leading-relaxed text-[#93a0c0]'>
+                            <ul className='space-y-1 text-[14px] leading-relaxed text-[#93a0c0]'>
                               {item.locations.map((location, index) => (
                                 <li key={`${item.id}-${location}-${index}`}>• {location}</li>
                               ))}

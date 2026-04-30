@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const FILTER_INPUT_CLASS =
-  "w-full rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 py-2 text-[14px] text-[#e0e0e0] outline-none transition placeholder:text-[#666] focus:border-[#a0c4ff] focus:ring-1 focus:ring-[#a0c4ff]/40";
+  "w-full rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 py-2 text-[16px] text-[#e0e0e0] outline-none transition placeholder:text-[#666] focus:border-[#a0c4ff] focus:ring-1 focus:ring-[#a0c4ff]/40";
 
 const CHIP_BASE_CLASS =
-  "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium tracking-[0.02em]";
+  "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[13px] font-medium tracking-[0.02em]";
 
 const FAVORITE_CHIP_CLASSES = [
   "border-rose-400/30 bg-rose-500/15 text-rose-200",
@@ -123,7 +123,7 @@ export function PokemonExplorer({ dataset }) {
       <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[0_8px_30px_rgba(0,0,0,.25)] md:p-5'>
         <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'>
           <label className='space-y-1 text-sm'>
-            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[16px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Search
             </span>
             <input
@@ -135,7 +135,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[16px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Ideal Habitat
             </span>
             <select
@@ -153,7 +153,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[16px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Primary Location
             </span>
             <select
@@ -171,7 +171,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[16px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Favorite Category
             </span>
             <select
@@ -189,7 +189,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[16px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Rarity
             </span>
             <select
@@ -209,16 +209,16 @@ export function PokemonExplorer({ dataset }) {
       </div>
 
       <div className='flex flex-wrap items-center justify-between gap-2 px-1'>
-        <h2 className='text-[13px] font-semibold uppercase tracking-[0.18em] text-[#a0c4ff] sm:text-[14px]'>
+        <h2 className='text-[15px] font-semibold uppercase tracking-[0.18em] text-[#a0c4ff] sm:text-[16px]'>
           Pokemon Directory
         </h2>
-        <p className='text-[12px] tracking-[0.08em] text-[#777]'>
+        <p className='text-[14px] tracking-[0.08em] text-[#777]'>
           Showing {filtered.length} of {dataset.count}
         </p>
       </div>
 
       {filtered.length === 0 ? (
-        <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.75)] p-6 text-center text-[13px] tracking-[0.08em] text-[#777]'>
+        <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.75)] p-6 text-center text-[15px] tracking-[0.08em] text-[#777]'>
           No Pokemon match the current filters.
         </div>
       ) : null}
@@ -230,7 +230,7 @@ export function PokemonExplorer({ dataset }) {
             className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-3 shadow-[inset_0_1px_0_rgba(160,196,255,.08)] transition duration-150 hover:-translate-y-0.5 hover:border-[#a0c4ff] sm:p-4'
           >
             <div className='mb-2 flex items-center justify-end'>
-              <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[11px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
+              <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
                 #{pokemon.number}
               </span>
             </div>
@@ -252,7 +252,7 @@ export function PokemonExplorer({ dataset }) {
               </span>
             </div>
 
-            <p className='mt-1 text-[13px] text-[#8a8aa8] sm:text-sm'>
+            <p className='mt-1 text-[15px] text-[#8a8aa8] sm:text-sm'>
               {pokemon.primaryLocation}
             </p>
 
@@ -278,7 +278,7 @@ export function PokemonExplorer({ dataset }) {
 
             <div className='mt-3 space-y-2'>
               <div>
-                <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
                   Favorites
                 </p>
                 {pokemon.favorites.length > 0 ? (
@@ -299,7 +299,7 @@ export function PokemonExplorer({ dataset }) {
               </div>
 
               <div>
-                <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
                   Specialties
                 </p>
                 {Array.isArray(pokemon.meta?.specialtyDetails) &&
@@ -378,7 +378,7 @@ export function PokemonExplorer({ dataset }) {
               </div>
 
               <div>
-                <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
                   Available Areas
                 </p>
                 {(() => {
