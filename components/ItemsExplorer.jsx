@@ -175,6 +175,36 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
     [selectedPokemonOption],
   );
 
+  const queryPokemonFavoriteKeySet = useMemo(() => {
+    const trimmedQuery = query.trim().toLowerCase();
+    if (!trimmedQuery) return new Set();
+
+    const normalizedQuery = normalizePokemonValue(trimmedQuery);
+    const queryTerms = trimmedQuery
+      .split(/[^a-z0-9]+/g)
+      .map((term) => term.trim())
+      .filter((term) => term.length >= 3);
+
+    const favoriteKeys = new Set();
+    pokemonOptions.forEach((pokemonOption) => {
+      const pokemonNameLower = pokemonOption.name.toLowerCase();
+      const normalizedPokemonName = normalizePokemonValue(pokemonOption.name);
+      const matchesPokemonName =
+        pokemonNameLower.includes(trimmedQuery) ||
+        trimmedQuery.includes(pokemonNameLower) ||
+        (normalizedQuery.length >= 3 &&
+          normalizedPokemonName.includes(normalizedQuery)) ||
+        queryTerms.some((term) => pokemonNameLower.includes(term));
+
+      if (!matchesPokemonName) return;
+      pokemonOption.favoriteKeys.forEach((favoriteKey) => {
+        favoriteKeys.add(favoriteKey);
+      });
+    });
+
+    return favoriteKeys;
+  }, [pokemonOptions, query]);
+
   const tagSpriteByTag = useMemo(() => {
     const lookup = new Map();
 
@@ -320,6 +350,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
   const processedSections = useMemo(() => {
     return dataset.sections.map((section) => {
       const filteredItems = section.items.filter((item) => {
+        const trimmedQuery = query.trim();
         const matchesFavorite =
           favoriteFilter === "all" || item.favorites.includes(favoriteFilter);
         const matchesPokemon =
@@ -327,8 +358,15 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
           item.favorites.some((favorite) =>
             selectedPokemonFavoriteKeySet.has(normalizeFavoriteValue(favorite)),
           );
+        const matchesPokemonFromQuery =
+          queryPokemonFavoriteKeySet.size > 0 &&
+          item.favorites.some((favorite) =>
+            queryPokemonFavoriteKeySet.has(normalizeFavoriteValue(favorite)),
+          );
+        const matchesSearch =
+          matchesQuery(item, trimmedQuery) || matchesPokemonFromQuery;
 
-        return matchesFavorite && matchesPokemon && matchesQuery(item, query.trim());
+        return matchesFavorite && matchesPokemon && matchesSearch;
       });
 
       return {
@@ -336,7 +374,14 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
         filteredItems,
       };
     });
-  }, [dataset.sections, favoriteFilter, pokemonFilter, query, selectedPokemonFavoriteKeySet]);
+  }, [
+    dataset.sections,
+    favoriteFilter,
+    pokemonFilter,
+    query,
+    queryPokemonFavoriteKeySet,
+    selectedPokemonFavoriteKeySet,
+  ]);
 
   const visibleSections = useMemo(() => {
     if (!isFiltering) return processedSections;
@@ -361,7 +406,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder='Name, section, location, favorite type'
+              placeholder='Name, section, location, favorite type, pokemon'
               className={FILTER_INPUT_CLASS}
             />
           </label>
@@ -522,13 +567,27 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
       <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.65)] p-3'>
         <div className='mb-2 flex flex-wrap gap-2'>
           {visibleSections.map((section) => (
-            <a
+            <button
               key={`nav-${section.id}`}
               className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] uppercase tracking-[0.08em] text-[#8c9cc2] transition hover:border-[#a0c4ff] hover:text-[#a0c4ff]'
-              href={`#section-${section.id}`}
+              onClick={() => {
+                setCollapsedBySection((prev) => ({
+                  ...prev,
+                  [section.id]: false,
+                }));
+
+                const targetId = `section-${section.id}`;
+                window.requestAnimationFrame(() => {
+                  document.getElementById(targetId)?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                });
+              }}
+              type='button'
             >
               {section.title}
-            </a>
+            </button>
           ))}
         </div>
       </div>
