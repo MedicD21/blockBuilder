@@ -474,48 +474,48 @@ export default function BlockBuilder() {
 
   return (
     <main className='flex min-h-[100dvh] flex-col overflow-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
-      <header className='z-10 flex items-center gap-3 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-3 py-2'>
-        <h1 className='whitespace-nowrap text-[20px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff]'>
+      <header className='z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-3 py-2'>
+        <h1 className='whitespace-nowrap text-[15px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff] sm:text-[18px] lg:text-[20px]'>
           Block Builder
         </h1>
-        <p className='hidden whitespace-nowrap text-[15px] tracking-[0.1em] text-[#666] md:block'>
+        <p className='hidden whitespace-nowrap text-[10px] tracking-[0.1em] text-[#666] lg:block'>
           TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM
         </p>
         <div className='flex-1' />
         <Link
-          className='whitespace-nowrap text-[20px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff]'
+          className='whitespace-nowrap text-[12px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[13px] lg:text-[16px]'
           href='/pokemon-explorer'
         >
           POKEMON ↗
         </Link>
         <Link
-          className='whitespace-nowrap text-[20px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff]'
+          className='whitespace-nowrap text-[12px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[13px] lg:text-[16px]'
           href='/items'
         >
           ITEMS ↗
         </Link>
       </header>
 
-      <div className='flex flex-1 overflow-hidden'>
-        <div className='relative flex-1' ref={wrapRef}>
+      <div className='flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row'>
+        <div className='relative min-h-[46dvh] flex-1 lg:min-h-0' ref={wrapRef}>
           <canvas className='block h-full w-full' ref={canvasRef} />
-          <div className='pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#3a3a5c] bg-black/60 px-3 py-1 text-[10px] tracking-[0.1em] text-[#666]'>
+          <div className='pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#3a3a5c] bg-black/60 px-3 py-1 text-[9px] tracking-[0.1em] text-[#666] sm:text-[10px]'>
             Tap grid to place blocks
           </div>
         </div>
 
-        <aside className='flex w-[170px] flex-shrink-0 flex-col overflow-hidden border-l-2 border-[#3a3a5c] bg-[rgba(10,10,20,.97)]'>
+        <aside className='flex w-full max-h-[42dvh] flex-shrink-0 flex-col overflow-hidden border-t-2 border-[#3a3a5c] bg-[rgba(10,10,20,.97)] lg:max-h-none lg:w-[220px] lg:border-l-2 lg:border-t-0 xl:w-[240px]'>
           <div className='border-b border-[#3a3a5c] px-2 pb-1 pt-2'>
-            <h2 className='mb-2 text-[9px] uppercase tracking-[0.2em] text-[#666]'>
+            <h2 className='mb-2 text-[10px] uppercase tracking-[0.2em] text-[#666]'>
               Blocks
             </h2>
-            <div className='space-y-1'>
+            <div className='grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1'>
               {BLOCKS.map((block) => {
                 const active = !eraseMode && selectedBlockId === block.id;
                 return (
                   <button
                     key={block.id}
-                    className={`flex w-full items-center gap-2 rounded border px-2 py-1 text-left text-[11px] tracking-[0.08em] transition-all ${
+                    className={`flex w-full items-center gap-2 rounded border px-2 py-1 text-left text-[12px] tracking-[0.08em] transition-all lg:text-[11px] ${
                       active
                         ? "border-[#a0c4ff] bg-[rgba(160,196,255,.15)] text-white"
                         : "border-transparent bg-white/5 text-[#ccc] hover:border-[#555] hover:bg-white/10"
@@ -538,7 +538,7 @@ export default function BlockBuilder() {
           </div>
 
           <button
-            className={`mx-2 mb-2 mt-0 rounded border px-2 py-1 text-[10px] tracking-[0.1em] transition-all ${
+            className={`mx-2 mb-2 mt-0 rounded border px-2 py-1 text-[11px] tracking-[0.1em] transition-all lg:text-[10px] ${
               eraseMode
                 ? "border-[#ff5050] bg-[rgba(255,80,80,.2)] text-white"
                 : "border-[#5a2a2a] bg-[rgba(255,80,80,.08)] text-[#ff9090] hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white"
@@ -550,22 +550,22 @@ export default function BlockBuilder() {
           </button>
 
           <div className='border-y border-[#3a3a5c] px-2 py-2'>
-            <h2 className='mb-1 text-[9px] uppercase tracking-[0.2em] text-[#666]'>
+            <h2 className='mb-1 text-[10px] uppercase tracking-[0.2em] text-[#666]'>
               Layer
             </h2>
             <div className='flex items-center gap-2'>
               <button
-                className='flex h-6 w-6 items-center justify-center rounded border border-[#444] bg-white/5 text-[14px] text-[#aaa] transition-colors hover:bg-white/15'
+                className='flex h-7 w-7 items-center justify-center rounded border border-[#444] bg-white/5 text-[15px] text-[#aaa] transition-colors hover:bg-white/15 lg:h-6 lg:w-6 lg:text-[14px]'
                 onClick={() => setCurrentLayer((prev) => Math.max(1, prev - 1))}
                 type='button'
               >
                 −
               </button>
-              <div className='min-w-5 text-center text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
+              <div className='min-w-5 text-center text-[14px] font-bold tracking-[0.08em] text-[#a0c4ff] lg:text-[13px]'>
                 {currentLayer}
               </div>
               <button
-                className='flex h-6 w-6 items-center justify-center rounded border border-[#444] bg-white/5 text-[14px] text-[#aaa] transition-colors hover:bg-white/15'
+                className='flex h-7 w-7 items-center justify-center rounded border border-[#444] bg-white/5 text-[15px] text-[#aaa] transition-colors hover:bg-white/15 lg:h-6 lg:w-6 lg:text-[14px]'
                 onClick={() =>
                   setCurrentLayer((prev) => Math.min(LAYERS, prev + 1))
                 }
@@ -573,40 +573,44 @@ export default function BlockBuilder() {
               >
                 +
               </button>
-              <div className='ml-0.5 text-[10px] text-[#555]'>/ {LAYERS}</div>
+              <div className='ml-0.5 text-[11px] text-[#555] lg:text-[10px]'>
+                / {LAYERS}
+              </div>
             </div>
           </div>
 
           <div className='flex-1 overflow-y-auto px-2 pb-1 pt-2'>
-            <h2 className='mb-2 text-[9px] uppercase tracking-[0.2em] text-[#666]'>
+            <h2 className='mb-2 text-[10px] uppercase tracking-[0.2em] text-[#666]'>
               Block Count
             </h2>
             {BLOCKS.filter((block) => counts[block.id] > 0).map((block) => (
               <div
-                className='mb-1 flex items-center gap-[7px] text-[11px] text-[#bbb]'
+                className='mb-1 flex items-center gap-[7px] text-[12px] text-[#bbb] lg:text-[11px]'
                 key={block.id}
               >
                 <span
                   className='h-[10px] w-[10px] flex-shrink-0 rounded-[2px] border border-white/15'
                   style={{ background: block.color }}
                 />
-                <span className='flex-1 text-[10px] tracking-[0.04em]'>
+                <span className='flex-1 text-[11px] tracking-[0.04em] lg:text-[10px]'>
                   {block.name}
                 </span>
-                <span className='text-[12px] font-bold text-[#a0c4ff]'>
+                <span className='text-[13px] font-bold text-[#a0c4ff] lg:text-[12px]'>
                   {counts[block.id]}
                 </span>
               </div>
             ))}
 
-            <div className='mt-2 flex items-center justify-between border-t border-[#3a3a5c] pt-2 text-[10px] tracking-[0.1em] text-[#888]'>
+            <div className='mt-2 flex items-center justify-between border-t border-[#3a3a5c] pt-2 text-[11px] tracking-[0.1em] text-[#888] lg:text-[10px]'>
               TOTAL
-              <span className='text-[13px] font-bold text-white'>{total}</span>
+              <span className='text-[14px] font-bold text-white lg:text-[13px]'>
+                {total}
+              </span>
             </div>
           </div>
 
           <button
-            className='m-2 rounded border border-[#3a3a5c] bg-transparent px-2 py-1 text-[10px] tracking-[0.1em] text-[#666] transition-all hover:border-[#ff5050] hover:text-[#ff9090]'
+            className='m-2 rounded border border-[#3a3a5c] bg-transparent px-2 py-1 text-[11px] tracking-[0.1em] text-[#666] transition-all hover:border-[#ff5050] hover:text-[#ff9090] lg:text-[10px]'
             onClick={() => {
               const event = new CustomEvent(CLEAR_EVENT);
               window.dispatchEvent(event);
