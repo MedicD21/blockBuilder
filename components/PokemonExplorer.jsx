@@ -2,56 +2,61 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-const CHIP_BASE_CLASS = "rounded-full border px-2 py-1 text-xs font-medium";
+
+const FILTER_INPUT_CLASS =
+  "w-full rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 py-2 text-[13px] text-[#e0e0e0] outline-none transition placeholder:text-[#666] focus:border-[#a0c4ff] focus:ring-1 focus:ring-[#a0c4ff]/40";
+
+const CHIP_BASE_CLASS =
+  "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium tracking-[0.02em]";
 
 const FAVORITE_CHIP_CLASSES = [
-  "border-rose-200 bg-rose-100 text-rose-900",
-  "border-fuchsia-200 bg-fuchsia-100 text-fuchsia-900",
-  "border-pink-200 bg-pink-100 text-pink-900",
-  "border-orange-200 bg-orange-100 text-orange-900",
-  "border-lime-200 bg-lime-100 text-lime-900",
-  "border-teal-200 bg-teal-100 text-teal-900",
-  "border-sky-200 bg-sky-100 text-sky-900",
-  "border-indigo-200 bg-indigo-100 text-indigo-900",
+  "border-rose-400/30 bg-rose-500/15 text-rose-200",
+  "border-fuchsia-400/30 bg-fuchsia-500/15 text-fuchsia-200",
+  "border-pink-400/30 bg-pink-500/15 text-pink-200",
+  "border-orange-400/30 bg-orange-500/15 text-orange-200",
+  "border-lime-400/30 bg-lime-500/15 text-lime-200",
+  "border-teal-400/30 bg-teal-500/15 text-teal-200",
+  "border-sky-400/30 bg-sky-500/15 text-sky-200",
+  "border-indigo-400/30 bg-indigo-500/15 text-indigo-200",
 ];
 
 const SPECIALTY_CHIP_CLASSES = [
-  "border-amber-200 bg-amber-100 text-amber-900",
-  "border-yellow-200 bg-yellow-100 text-yellow-900",
-  "border-cyan-200 bg-cyan-100 text-cyan-900",
-  "border-violet-200 bg-violet-100 text-violet-900",
-  "border-emerald-200 bg-emerald-100 text-emerald-900",
-  "border-slate-200 bg-slate-100 text-slate-900",
-  "border-blue-200 bg-blue-100 text-blue-900",
-  "border-red-200 bg-red-100 text-red-900",
+  "border-amber-400/30 bg-amber-500/15 text-amber-200",
+  "border-yellow-400/30 bg-yellow-500/15 text-yellow-200",
+  "border-cyan-400/30 bg-cyan-500/15 text-cyan-200",
+  "border-violet-400/30 bg-violet-500/15 text-violet-200",
+  "border-emerald-400/30 bg-emerald-500/15 text-emerald-200",
+  "border-slate-400/30 bg-slate-500/15 text-slate-200",
+  "border-blue-400/30 bg-blue-500/15 text-blue-200",
+  "border-red-400/30 bg-red-500/15 text-red-200",
 ];
 
 const AREA_CHIP_CLASSES = [
-  "border-sky-200 bg-sky-100 text-sky-900",
-  "border-blue-200 bg-blue-100 text-blue-900",
-  "border-cyan-200 bg-cyan-100 text-cyan-900",
-  "border-emerald-200 bg-emerald-100 text-emerald-900",
-  "border-teal-200 bg-teal-100 text-teal-900",
-  "border-indigo-200 bg-indigo-100 text-indigo-900",
-  "border-lime-200 bg-lime-100 text-lime-900",
-  "border-purple-200 bg-purple-100 text-purple-900",
+  "border-sky-400/30 bg-sky-500/15 text-sky-200",
+  "border-blue-400/30 bg-blue-500/15 text-blue-200",
+  "border-cyan-400/30 bg-cyan-500/15 text-cyan-200",
+  "border-emerald-400/30 bg-emerald-500/15 text-emerald-200",
+  "border-teal-400/30 bg-teal-500/15 text-teal-200",
+  "border-indigo-400/30 bg-indigo-500/15 text-indigo-200",
+  "border-lime-400/30 bg-lime-500/15 text-lime-200",
+  "border-purple-400/30 bg-purple-500/15 text-purple-200",
 ];
 
 const IDEAL_CHIP_CLASSES = [
-  "border-emerald-200 bg-emerald-100 text-emerald-900",
-  "border-teal-200 bg-teal-100 text-teal-900",
-  "border-lime-200 bg-lime-100 text-lime-900",
-  "border-cyan-200 bg-cyan-100 text-cyan-900",
-  "border-sky-200 bg-sky-100 text-sky-900",
-  "border-violet-200 bg-violet-100 text-violet-900",
+  "border-emerald-400/30 bg-emerald-500/15 text-emerald-200",
+  "border-teal-400/30 bg-teal-500/15 text-teal-200",
+  "border-lime-400/30 bg-lime-500/15 text-lime-200",
+  "border-cyan-400/30 bg-cyan-500/15 text-cyan-200",
+  "border-sky-400/30 bg-sky-500/15 text-sky-200",
+  "border-violet-400/30 bg-violet-500/15 text-violet-200",
 ];
 
 const RARITY_CHIP_CLASSES = [
-  "border-zinc-200 bg-zinc-100 text-zinc-900",
-  "border-indigo-200 bg-indigo-100 text-indigo-900",
-  "border-amber-200 bg-amber-100 text-amber-900",
-  "border-fuchsia-200 bg-fuchsia-100 text-fuchsia-900",
-  "border-red-200 bg-red-100 text-red-900",
+  "border-zinc-400/30 bg-zinc-500/15 text-zinc-200",
+  "border-indigo-400/30 bg-indigo-500/15 text-indigo-200",
+  "border-amber-400/30 bg-amber-500/15 text-amber-200",
+  "border-fuchsia-400/30 bg-fuchsia-500/15 text-fuchsia-200",
+  "border-red-400/30 bg-red-500/15 text-red-200",
 ];
 
 function hashLabel(label) {
@@ -64,7 +69,7 @@ function hashLabel(label) {
 
 function chipTone(label, palette) {
   if (palette.length === 0) {
-    return "border-black/10 bg-black/5 text-black/80";
+    return "border-[#3a3a5c] bg-[rgba(255,255,255,.04)] text-[#e0e0e0]";
   }
 
   const index = hashLabel(label.toLowerCase()) % palette.length;
@@ -114,24 +119,28 @@ export function PokemonExplorer({ dataset }) {
 
   return (
     <section className='space-y-5'>
-      <div className='rounded-3xl border border-black/10 bg-white/80 p-4 shadow-sm backdrop-blur-sm'>
+      <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[0_8px_30px_rgba(0,0,0,.25)]'>
         <div className='grid gap-3 md:grid-cols-5'>
           <label className='space-y-1 text-sm'>
-            <span className='font-medium'>Search</span>
+            <span className='text-[10px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+              Search
+            </span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder='Name, number, favorite, specialty'
-              className='w-full rounded-xl border border-black/10 bg-white px-3 py-2 outline-none transition focus:border-black/25'
+              className={FILTER_INPUT_CLASS}
             />
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='font-medium'>Ideal Habitat</span>
+            <span className='text-[10px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+              Ideal Habitat
+            </span>
             <select
               value={habitat}
               onChange={(event) => setHabitat(event.target.value)}
-              className='w-full rounded-xl border border-black/10 bg-white px-3 py-2 outline-none transition focus:border-black/25'
+              className={FILTER_INPUT_CLASS}
             >
               <option value='all'>All</option>
               {dataset.facets.idealHabitats.map((option) => (
@@ -143,11 +152,13 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='font-medium'>Primary Location</span>
+            <span className='text-[10px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+              Primary Location
+            </span>
             <select
               value={location}
               onChange={(event) => setLocation(event.target.value)}
-              className='w-full rounded-xl border border-black/10 bg-white px-3 py-2 outline-none transition focus:border-black/25'
+              className={FILTER_INPUT_CLASS}
             >
               <option value='all'>All</option>
               {dataset.facets.primaryLocations.map((option) => (
@@ -159,11 +170,13 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='font-medium'>Favorite Category</span>
+            <span className='text-[10px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+              Favorite Category
+            </span>
             <select
               value={favorite}
               onChange={(event) => setFavorite(event.target.value)}
-              className='w-full rounded-xl border border-black/10 bg-white px-3 py-2 outline-none transition focus:border-black/25'
+              className={FILTER_INPUT_CLASS}
             >
               <option value='all'>All</option>
               {dataset.facets.favorites.map((option) => (
@@ -175,11 +188,13 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='font-medium'>Rarity</span>
+            <span className='text-[10px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+              Rarity
+            </span>
             <select
               value={rarity}
               onChange={(event) => setRarity(event.target.value)}
-              className='w-full rounded-xl border border-black/10 bg-white px-3 py-2 outline-none transition focus:border-black/25'
+              className={FILTER_INPUT_CLASS}
             >
               <option value='all'>All</option>
               {rarityOptions.map((option) => (
@@ -192,45 +207,54 @@ export function PokemonExplorer({ dataset }) {
         </div>
       </div>
 
-      <div className='flex items-center justify-between px-1'>
-        <h2 className='text-lg font-semibold'>Pokemon Explorer</h2>
-        <p className='text-sm text-black/60'>
+      <div className='flex flex-wrap items-center justify-between gap-2 px-1'>
+        <h2 className='text-[12px] font-semibold uppercase tracking-[0.18em] text-[#a0c4ff]'>
+          Pokemon Directory
+        </h2>
+        <p className='text-[11px] tracking-[0.08em] text-[#777]'>
           Showing {filtered.length} of {dataset.count}
         </p>
       </div>
 
-      <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-3 bg-green-300/20 p-3 rounded-2xl'>
+      {filtered.length === 0 ? (
+        <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.75)] p-6 text-center text-[12px] tracking-[0.08em] text-[#777]'>
+          No Pokemon match the current filters.
+        </div>
+      ) : null}
+
+      <div className='grid gap-3 rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.65)] p-3 sm:grid-cols-2 xl:grid-cols-3'>
         {filtered.map((pokemon) => (
           <article
             key={pokemon.number + pokemon.name}
-            className='rounded-2xl border-2 border-black/20 bg-green-500/20 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md'
+            className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[inset_0_1px_0_rgba(160,196,255,.08)] transition duration-150 hover:-translate-y-0.5 hover:border-[#a0c4ff]'
           >
-            <div className='mb-2 flex items-center justify-end gap-2'>
-              <h3 className='hidden text-base font-semibold'>{pokemon.name}</h3>
-              <span className='flex rounded-full bg-green-500/20 px-2 py-1 text-xs border-2 font-medium'>
+            <div className='mb-2 flex items-center justify-end'>
+              <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[11px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
                 #{pokemon.number}
               </span>
             </div>
+
             <div className='flex items-center gap-2'>
               {pokemon.meta?.spriteUrl ? (
                 <Image
                   aria-hidden='true'
-                  className='inline-block h-25 w-25 object-contain'
+                  className='inline-block h-16 w-16 object-contain md:h-20 md:w-20'
                   src={pokemon.meta.spriteUrl}
                   alt=''
-                  width={24}
-                  height={24}
+                  width={80}
+                  height={80}
                   unoptimized
                 />
               ) : null}
-              <span className='text-4xl text-black/70 font-bold'>
+              <span className='break-words text-3xl font-bold leading-none text-[#e6edff]'>
                 {pokemon.name}
               </span>
             </div>
 
-            <p className='text-sm text-black/70'>{pokemon.primaryLocation}</p>
-            <div className='mt-1 flex items-center gap-2 text-sm'>
-              <span className='font-medium'>Ideal:</span>
+            <p className='mt-1 text-sm text-[#8a8aa8]'>{pokemon.primaryLocation}</p>
+
+            <div className='mt-2 flex items-center gap-2 text-sm text-[#a9a9c2]'>
+              <span className='font-semibold text-[#999]'>Ideal:</span>
               <span
                 className={`${CHIP_BASE_CLASS} ${chipTone(pokemon.idealHabitat, IDEAL_CHIP_CLASSES)}`}
               >
@@ -239,8 +263,8 @@ export function PokemonExplorer({ dataset }) {
             </div>
 
             {pokemon.meta?.rarity ? (
-              <div className='mt-1 flex items-center gap-2 text-sm'>
-                <span className='font-medium'>Rarity:</span>
+              <div className='mt-1 flex items-center gap-2 text-sm text-[#a9a9c2]'>
+                <span className='font-semibold text-[#999]'>Rarity:</span>
                 <span
                   className={`${CHIP_BASE_CLASS} ${chipTone(pokemon.meta.rarity, RARITY_CHIP_CLASSES)}`}
                 >
@@ -251,7 +275,7 @@ export function PokemonExplorer({ dataset }) {
 
             <div className='mt-3 space-y-2'>
               <div>
-                <p className='text-xs font-semibold uppercase tracking-wide text-black/55'>
+                <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
                   Favorites
                 </p>
                 {pokemon.favorites.length > 0 ? (
@@ -266,12 +290,12 @@ export function PokemonExplorer({ dataset }) {
                     ))}
                   </div>
                 ) : (
-                  <p className='text-sm'>-</p>
+                  <p className='text-sm text-[#666]'>-</p>
                 )}
               </div>
 
               <div>
-                <p className='text-xs font-semibold uppercase tracking-wide text-black/55'>
+                <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
                   Specialties
                 </p>
                 {Array.isArray(pokemon.meta?.specialtyDetails) &&
@@ -282,7 +306,7 @@ export function PokemonExplorer({ dataset }) {
                         key={`${pokemon.number}-${pokemon.name}-${specialty.name}`}
                       >
                         <span
-                          className={`${CHIP_BASE_CLASS} inline-flex items-center gap-1 ${chipTone(specialty.name, SPECIALTY_CHIP_CLASSES)}`}
+                          className={`${CHIP_BASE_CLASS} ${chipTone(specialty.name, SPECIALTY_CHIP_CLASSES)}`}
                         >
                           {specialty.iconUrl ? (
                             <Image
@@ -299,7 +323,7 @@ export function PokemonExplorer({ dataset }) {
                           {specialty.name.toLowerCase() === "litter" &&
                           specialty.litterItemIconUrl ? (
                             <>
-                              <span className='mx-1 text-black/40'>|</span>
+                              <span className='mx-1 text-[#666]'>|</span>
                               <Image
                                 aria-hidden='true'
                                 className='inline-block h-5 w-5 object-contain align-middle'
@@ -321,7 +345,7 @@ export function PokemonExplorer({ dataset }) {
                     {pokemon.specialties.map((specialtyName) => (
                       <span
                         key={`${pokemon.number}-${pokemon.name}-specialty-${specialtyName}`}
-                        className={`${CHIP_BASE_CLASS} inline-flex items-center gap-1 ${chipTone(specialtyName, SPECIALTY_CHIP_CLASSES)}`}
+                        className={`${CHIP_BASE_CLASS} ${chipTone(specialtyName, SPECIALTY_CHIP_CLASSES)}`}
                       >
                         {(() => {
                           const specialtyDetail =
@@ -345,12 +369,12 @@ export function PokemonExplorer({ dataset }) {
                     ))}
                   </div>
                 ) : (
-                  <p className='text-sm'>-</p>
+                  <p className='text-sm text-[#666]'>-</p>
                 )}
               </div>
 
               <div>
-                <p className='text-xs font-semibold uppercase tracking-wide text-black/55'>
+                <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
                   Available Areas
                 </p>
                 {(() => {
@@ -367,7 +391,7 @@ export function PokemonExplorer({ dataset }) {
                       {areaEntries.map((area) => (
                         <span
                           key={`${pokemon.number}-${pokemon.name}-area-${area.name}`}
-                          className={`${CHIP_BASE_CLASS} inline-flex items-center gap-1 ${chipTone(area.name, AREA_CHIP_CLASSES)}`}
+                          className={`${CHIP_BASE_CLASS} ${chipTone(area.name, AREA_CHIP_CLASSES)}`}
                         >
                           {area.iconUrl ? (
                             <Image
@@ -385,7 +409,7 @@ export function PokemonExplorer({ dataset }) {
                       ))}
                     </div>
                   ) : (
-                    <p className='text-sm'>-</p>
+                    <p className='text-sm text-[#666]'>-</p>
                   );
                 })()}
               </div>

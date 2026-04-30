@@ -1,13 +1,17 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PHASE_DEVELOPMENT_SERVER } from 'next/constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+/** @type {(phase: string) => import('next').NextConfig} */
+const createNextConfig = (phase) => ({
   reactStrictMode: true,
   outputFileTracingRoot: __dirname,
+  // Keep dev and build artifacts separate to avoid ENOENT races when build
+  // runs while dev server is active.
+  distDir: phase === PHASE_DEVELOPMENT_SERVER ? '.next-dev' : '.next',
   images: {
     remotePatterns: [
       {
@@ -24,6 +28,6 @@ const nextConfig = {
       },
     ],
   },
-};
+});
 
-export default nextConfig;
+export default createNextConfig;
