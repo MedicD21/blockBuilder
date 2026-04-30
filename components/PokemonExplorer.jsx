@@ -123,7 +123,7 @@ export function PokemonExplorer({ dataset }) {
       <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[0_8px_30px_rgba(0,0,0,.25)] md:p-5'>
         <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'>
           <label className='space-y-1 text-sm'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Search
             </span>
             <input
@@ -135,7 +135,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Ideal Habitat
             </span>
             <select
@@ -153,7 +153,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Primary Location
             </span>
             <select
@@ -171,7 +171,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Favorite Category
             </span>
             <select
@@ -189,7 +189,7 @@ export function PokemonExplorer({ dataset }) {
           </label>
 
           <label className='space-y-1 text-sm'>
-            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+            <span className='text-[14px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Rarity
             </span>
             <select

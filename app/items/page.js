@@ -44,7 +44,7 @@ export default function ItemsPage() {
           </Link>
           <Link
             className='whitespace-nowrap text-[12px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[13px] lg:text-[16px]'
-            href='/'
+            href='/builder'
           >
             BUILDER ↖
           </Link>
