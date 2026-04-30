@@ -65,6 +65,7 @@ Object.assign(sun.shadow.camera, {
   top: 25,
   bottom: -25,
 });
+sun.shadow.camera.updateProjectionMatrix(); // required after changing frustum bounds
 scene.add(sun);
 
 // Ground
@@ -104,9 +105,9 @@ scene.add(hoverMesh);
 
 // Shared geometries — never dispose these
 const blockGeo = new THREE.BoxGeometry(CELL * 0.94, CELL * 0.94, CELL * 0.94);
-const edgesGeo = new THREE.EdgesGeometry(
-  new THREE.BoxGeometry(CELL * 0.94, CELL * 0.94, CELL * 0.94),
-);
+const _edgesSrc = new THREE.BoxGeometry(CELL * 0.94, CELL * 0.94, CELL * 0.94);
+const edgesGeo = new THREE.EdgesGeometry(_edgesSrc);
+_edgesSrc.dispose(); // source geometry is no longer needed after EdgesGeometry is built
 const edgeMat = new THREE.LineBasicMaterial({
   color: 0x000000,
   transparent: true,
@@ -222,12 +223,14 @@ function placeBlock(row, col, layer) {
   if (placed[layer - 1][row][col]) return;
   placed[layer - 1][row][col] = selectedBlock.id;
 
-  const mesh = new THREE.Mesh(blockGeo, matCache[selectedBlock.id].clone());
+  // Use shared materials directly — no clone needed since blocks of the same type
+  // are visually identical. This avoids creating up to 2 × 2048 throwaway GPU objects.
+  const mesh = new THREE.Mesh(blockGeo, matCache[selectedBlock.id]);
   mesh.position.set(col, (layer - 1) * CELL + CELL * 0.5, row);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.userData = { row, col, layer };
-  mesh.add(new THREE.LineSegments(edgesGeo, edgeMat.clone()));
+  mesh.add(new THREE.LineSegments(edgesGeo, edgeMat));
   scene.add(mesh);
   meshMap[`${layer}-${row}-${col}`] = mesh;
   updateCounts();
@@ -237,9 +240,9 @@ function removeBlock(mesh) {
   const { row, col, layer } = mesh.userData;
   placed[layer - 1][row][col] = null;
   scene.remove(mesh);
-  mesh.traverse((c) => {
-    if (c.material) c.material.dispose();
-  });
+  // Do NOT dispose materials here — they are shared across all blocks of the same type.
+  // matCache entries and edgeMat live for the full page lifetime and are intentionally
+  // kept alive so other meshes can continue using them.
   delete meshMap[`${layer}-${row}-${col}`];
   updateCounts();
 }
@@ -319,9 +322,7 @@ document.getElementById("layer-down").addEventListener("click", () => {
 document.getElementById("clear-btn").addEventListener("click", () => {
   Object.values(meshMap).forEach((m) => {
     scene.remove(m);
-    m.traverse((c) => {
-      if (c.material) c.material.dispose();
-    });
+    // Materials are shared — do not dispose them here.
   });
   for (const k in meshMap) delete meshMap[k];
   for (let l = 0; l < LAYERS; l++)
@@ -353,9 +354,13 @@ canvas.addEventListener("mousemove", (e) => {
   const { x, y } = getXY(e);
   if (Math.hypot(x - pointerDownPos.x, y - pointerDownPos.y) > 6)
     pointerMoved = true;
-  // Desktop hover preview
+  // Desktop hover preview — only show when the target cell is actually free
   const info = getGridCell(e);
-  if (info && info.type === "place") {
+  if (
+    info &&
+    info.type === "place" &&
+    !placed[info.layer - 1][info.row][info.col]
+  ) {
     hoverMesh.visible = true;
     hoverMesh.position.set(
       info.col,
