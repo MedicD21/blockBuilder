@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const FILTER_INPUT_CLASS =
@@ -43,6 +43,14 @@ function normalizeFavoriteValue(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
+function normalizePokemonValue(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function normalizeTagValue(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 function getCanonicalFavorite(rawValue, favoriteTypes) {
   if (!rawValue) return "all";
 
@@ -61,6 +69,27 @@ function getCanonicalFavorite(rawValue, favoriteTypes) {
     favoriteTypes.find(
       (favoriteType) => normalizeFavoriteValue(favoriteType) === normalizedValue,
     ) ?? "all"
+  );
+}
+
+function getCanonicalPokemon(rawValue, pokemonOptions) {
+  if (!rawValue) return "all";
+
+  const trimmedValue = rawValue.trim();
+  if (!trimmedValue) return "all";
+
+  const exactMatch = pokemonOptions.find(
+    (pokemonOption) => pokemonOption.id.toLowerCase() === trimmedValue.toLowerCase(),
+  );
+  if (exactMatch) return exactMatch.id;
+
+  const normalizedValue = normalizePokemonValue(trimmedValue);
+  if (!normalizedValue) return "all";
+
+  return (
+    pokemonOptions.find(
+      (pokemonOption) => normalizePokemonValue(pokemonOption.id) === normalizedValue,
+    )?.id ?? "all"
   );
 }
 
@@ -84,17 +113,98 @@ function matchesQuery(item, query) {
   );
 }
 
-export function ItemsExplorer({ dataset }) {
+export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const pokemonPickerRef = useRef(null);
   const [query, setQuery] = useState("");
   const [favoriteFilter, setFavoriteFilter] = useState("all");
+  const [pokemonFilter, setPokemonFilter] = useState("all");
+  const [isPokemonPickerOpen, setIsPokemonPickerOpen] = useState(false);
   const [collapsedBySection, setCollapsedBySection] = useState({});
+
+  const favoriteCanonicalByNormalized = useMemo(() => {
+    const lookup = new Map();
+    dataset.favoriteTypes.forEach((favoriteType) => {
+      lookup.set(normalizeFavoriteValue(favoriteType), favoriteType);
+    });
+    return lookup;
+  }, [dataset.favoriteTypes]);
+
+  const pokemonOptions = useMemo(() => {
+    const pokemonRecords = pokemonDataset?.pokemon ?? [];
+    const deduped = new Map();
+
+    pokemonRecords.forEach((pokemon) => {
+      if (!pokemon?.name) return;
+
+      const canonicalFavorites = Array.from(
+        new Set(
+          (pokemon.favorites ?? [])
+            .map((favorite) => favoriteCanonicalByNormalized.get(normalizeFavoriteValue(favorite)))
+            .filter(Boolean),
+        ),
+      );
+
+      deduped.set(pokemon.name, {
+        id: pokemon.name,
+        name: pokemon.name,
+        spriteSrc: toPublicImageSrc(pokemon.meta?.spriteUrl || ""),
+        favoriteKeys: canonicalFavorites.map((favorite) =>
+          normalizeFavoriteValue(favorite),
+        ),
+      });
+    });
+
+    return Array.from(deduped.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [favoriteCanonicalByNormalized, pokemonDataset?.pokemon]);
+
+  const pokemonOptionById = useMemo(
+    () => new Map(pokemonOptions.map((pokemonOption) => [pokemonOption.id, pokemonOption])),
+    [pokemonOptions],
+  );
+
+  const selectedPokemonOption =
+    pokemonFilter === "all" ? null : (pokemonOptionById.get(pokemonFilter) ?? null);
+
+  const selectedPokemonFavoriteKeySet = useMemo(
+    () => new Set(selectedPokemonOption?.favoriteKeys ?? []),
+    [selectedPokemonOption],
+  );
+
+  const tagSpriteByTag = useMemo(() => {
+    const lookup = new Map();
+
+    Object.entries(tagSpriteMap).forEach(([tagLabel, spriteSrc]) => {
+      const normalizedTag = normalizeTagValue(tagLabel);
+      if (!normalizedTag || !spriteSrc) return;
+      lookup.set(normalizedTag, toPublicImageSrc(spriteSrc));
+    });
+
+    dataset.sections.forEach((section) => {
+      section.items.forEach((item) => {
+        if (!item.tagText || !item.imageSrc) return;
+
+        const normalizedTag = normalizeTagValue(item.tagText);
+        if (!normalizedTag || lookup.has(normalizedTag)) return;
+
+        lookup.set(normalizedTag, toPublicImageSrc(item.imageSrc));
+      });
+    });
+
+    return lookup;
+  }, [dataset.sections, tagSpriteMap]);
 
   const favoriteFromUrl = useMemo(
     () => getCanonicalFavorite(searchParams.get("favorite"), dataset.favoriteTypes),
     [dataset.favoriteTypes, searchParams],
+  );
+  const pokemonFromUrl = useMemo(
+    () => getCanonicalPokemon(searchParams.get("pokemon"), pokemonOptions),
+    [pokemonOptions, searchParams],
   );
 
   const applyFavoriteFilter = useCallback(
@@ -120,6 +230,45 @@ export function ItemsExplorer({ dataset }) {
     [dataset.favoriteTypes, pathname, router, searchParams],
   );
 
+  const applyPokemonFilter = useCallback(
+    (nextPokemon) => {
+      const canonicalPokemon =
+        nextPokemon === "all"
+          ? "all"
+          : getCanonicalPokemon(nextPokemon, pokemonOptions);
+
+      setPokemonFilter(canonicalPokemon);
+      setIsPokemonPickerOpen(false);
+
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (canonicalPokemon === "all") {
+        nextParams.delete("pokemon");
+      } else {
+        nextParams.set("pokemon", canonicalPokemon);
+      }
+
+      const nextQuery = nextParams.toString();
+      const nextHref = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+      router.replace(nextHref, { scroll: false });
+    },
+    [pathname, pokemonOptions, router, searchParams],
+  );
+
+  const resetFilters = useCallback(() => {
+    setQuery("");
+    setFavoriteFilter("all");
+    setPokemonFilter("all");
+    setIsPokemonPickerOpen(false);
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete("favorite");
+    nextParams.delete("pokemon");
+
+    const nextQuery = nextParams.toString();
+    const nextHref = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    router.replace(nextHref, { scroll: false });
+  }, [pathname, router, searchParams]);
+
   useEffect(() => {
     const initialState = {};
     dataset.sections.forEach((section) => {
@@ -134,14 +283,52 @@ export function ItemsExplorer({ dataset }) {
     );
   }, [favoriteFromUrl]);
 
-  const isFiltering = query.trim().length > 0 || favoriteFilter !== "all";
+  useEffect(() => {
+    setPokemonFilter((currentPokemon) =>
+      currentPokemon === pokemonFromUrl ? currentPokemon : pokemonFromUrl,
+    );
+  }, [pokemonFromUrl]);
+
+  useEffect(() => {
+    if (!isPokemonPickerOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!pokemonPickerRef.current?.contains(event.target)) {
+        setIsPokemonPickerOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setIsPokemonPickerOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isPokemonPickerOpen]);
+
+  const isFiltering =
+    query.trim().length > 0 ||
+    favoriteFilter !== "all" ||
+    pokemonFilter !== "all";
 
   const processedSections = useMemo(() => {
     return dataset.sections.map((section) => {
       const filteredItems = section.items.filter((item) => {
         const matchesFavorite =
           favoriteFilter === "all" || item.favorites.includes(favoriteFilter);
-        return matchesFavorite && matchesQuery(item, query.trim());
+        const matchesPokemon =
+          pokemonFilter === "all" ||
+          item.favorites.some((favorite) =>
+            selectedPokemonFavoriteKeySet.has(normalizeFavoriteValue(favorite)),
+          );
+
+        return matchesFavorite && matchesPokemon && matchesQuery(item, query.trim());
       });
 
       return {
@@ -149,7 +336,7 @@ export function ItemsExplorer({ dataset }) {
         filteredItems,
       };
     });
-  }, [dataset.sections, favoriteFilter, query]);
+  }, [dataset.sections, favoriteFilter, pokemonFilter, query, selectedPokemonFavoriteKeySet]);
 
   const visibleSections = useMemo(() => {
     if (!isFiltering) return processedSections;
@@ -166,7 +353,7 @@ export function ItemsExplorer({ dataset }) {
   return (
     <section className='space-y-5'>
       <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[0_8px_30px_rgba(0,0,0,.25)] md:p-5'>
-        <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+        <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           <label className='space-y-1 text-sm lg:col-span-2'>
             <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Search Items
@@ -178,6 +365,93 @@ export function ItemsExplorer({ dataset }) {
               className={FILTER_INPUT_CLASS}
             />
           </label>
+
+          <div className='space-y-1 text-sm'>
+            <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+              Pokemon
+            </span>
+            <div className='relative' ref={pokemonPickerRef}>
+              <button
+                aria-expanded={isPokemonPickerOpen}
+                className={`${FILTER_INPUT_CLASS} flex items-center justify-between gap-2 text-left`}
+                onClick={() => setIsPokemonPickerOpen((open) => !open)}
+                type='button'
+              >
+                <span className='flex min-w-0 items-center gap-2'>
+                  {selectedPokemonOption?.spriteSrc ? (
+                    <Image
+                      alt=''
+                      aria-hidden='true'
+                      className='h-5 w-5 flex-shrink-0 object-contain'
+                      height={20}
+                      src={selectedPokemonOption.spriteSrc}
+                      unoptimized
+                      width={20}
+                    />
+                  ) : (
+                    <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                      *
+                    </span>
+                  )}
+                  <span className='truncate'>
+                    {selectedPokemonOption?.name || "All Pokemon Favorites"}
+                  </span>
+                </span>
+                <span className='text-[10px] text-[#8897bc]'>
+                  {isPokemonPickerOpen ? "▲" : "▼"}
+                </span>
+              </button>
+
+              {isPokemonPickerOpen ? (
+                <div className='absolute left-0 right-0 z-20 mt-1 max-h-72 overflow-y-auto rounded-md border border-[#3a3a5c] bg-[rgba(10,10,20,.98)] p-1 shadow-[0_10px_30px_rgba(0,0,0,.45)]'>
+                  <button
+                    className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] transition ${
+                      pokemonFilter === "all"
+                        ? "bg-[rgba(160,196,255,.16)] text-[#e6edff]"
+                        : "text-[#c7d1ea] hover:bg-white/8"
+                    }`}
+                    onClick={() => applyPokemonFilter("all")}
+                    type='button'
+                  >
+                    <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                      *
+                    </span>
+                    <span className='truncate'>All Pokemon Favorites</span>
+                  </button>
+
+                  {pokemonOptions.map((pokemonOption) => (
+                    <button
+                      className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] transition ${
+                        pokemonFilter === pokemonOption.id
+                          ? "bg-[rgba(160,196,255,.16)] text-[#e6edff]"
+                          : "text-[#c7d1ea] hover:bg-white/8"
+                      }`}
+                      key={pokemonOption.id}
+                      onClick={() => applyPokemonFilter(pokemonOption.id)}
+                      type='button'
+                    >
+                      {pokemonOption.spriteSrc ? (
+                        <Image
+                          alt=''
+                          aria-hidden='true'
+                          className='h-5 w-5 flex-shrink-0 object-contain'
+                          height={20}
+                          src={pokemonOption.spriteSrc}
+                          unoptimized
+                          width={20}
+                        />
+                      ) : (
+                        <span className='inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                          ?
+                        </span>
+                      )}
+                      <span className='truncate'>{pokemonOption.name}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
 
           <label className='space-y-1 text-sm'>
             <span className='text-[11px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
@@ -203,6 +477,18 @@ export function ItemsExplorer({ dataset }) {
             Showing {totalVisibleItems} of {dataset.totalItems} items
           </p>
           <div className='flex items-center gap-2'>
+            <button
+              className={`rounded border px-2 py-1 text-[11px] tracking-[0.08em] transition ${
+                isFiltering
+                  ? "border-[#4b567b] bg-white/5 text-[#b5c0df] hover:bg-white/10"
+                  : "border-[#2d3250] bg-white/3 text-[#5f6b8f]"
+              }`}
+              disabled={!isFiltering}
+              onClick={resetFilters}
+              type='button'
+            >
+              RESET FILTERS
+            </button>
             <button
               className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.08em] text-[#9ba9cb] transition hover:bg-white/10'
               onClick={() => {
@@ -293,6 +579,9 @@ export function ItemsExplorer({ dataset }) {
                       favoriteFilter === "all"
                         ? item.favorites
                         : item.favorites.filter((favorite) => favorite === favoriteFilter);
+                    const tagSpriteSrc = item.tagText
+                      ? tagSpriteByTag.get(normalizeTagValue(item.tagText))
+                      : "";
 
                     return (
                       <article
@@ -346,9 +635,29 @@ export function ItemsExplorer({ dataset }) {
                         ) : null}
 
                         {item.tagText ? (
-                          <p className='mt-3 text-[11px] uppercase tracking-[0.1em] text-[#7f8bb0]'>
-                            Tag: {item.tagText}
-                          </p>
+                          <div className='mt-3'>
+                            <p className='mb-1 text-[10px] uppercase tracking-[0.12em] text-[#777]'>
+                              Tag
+                            </p>
+                            <div className='inline-flex items-center gap-2 rounded-md border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.05em] text-[#c6d1eb]'>
+                              {tagSpriteSrc ? (
+                                <Image
+                                  alt=''
+                                  aria-hidden='true'
+                                  className='h-8 w-8 flex-shrink-0 rounded-sm border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-[1px]'
+                                  height={32}
+                                  src={tagSpriteSrc}
+                                  unoptimized
+                                  width={32}
+                                />
+                              ) : (
+                                <span className='inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm border border-[#3a3a5c] bg-white/5 text-[10px] text-[#7f8bb0]'>
+                                  ?
+                                </span>
+                              )}
+                              <span>{item.tagText}</span>
+                            </div>
+                          </div>
                         ) : null}
 
                         {item.locations.length > 0 ? (

@@ -46,32 +46,28 @@ const BUILDER_SECTIONS = [
     title: "Doors",
     items: [
       {
-        id: "simpledoor",
-        name: "Simple door",
-        color: "#C8A86B",
-        hex: 0xc8a86b,
+        id: "singledoor",
+        name: "Single door (1x2)",
+        color: "#228B22",
+        hex: 0x228b22,
         shape: "cube",
+        footprint: { width: 1, height: 2 },
       },
       {
-        id: "moderndoor",
-        name: "Modern door",
-        color: "#7B5230",
-        hex: 0x7b5230,
-        shape: "cube",
-      },
-      {
-        id: "rusticdoor",
-        name: "Rustic door",
-        color: "#9B6A44",
-        hex: 0x9b6a44,
-        shape: "cube",
-      },
-      {
-        id: "irondoor",
-        name: "Iron door",
+        id: "doubledoor",
+        name: "Double door (2x2)",
         color: "#C0C0C0",
         hex: 0xc0c0c0,
         shape: "cube",
+        footprint: { width: 2, height: 2 },
+      },
+      {
+        id: "largedoor",
+        name: "Large door (2x3)",
+        color: "#111111",
+        hex: 0x111111,
+        shape: "cube",
+        footprint: { width: 2, height: 3 },
       },
     ],
   },
@@ -160,6 +156,10 @@ const LAYERS = 18;
 const CELL = 1;
 const CLEAR_EVENT = "block-builder-clear";
 const ROOF_ROTATIONS = [0, 90, 180, 270];
+const ITEM_NAME_STORAGE_KEY = "block-builder-item-name-map-v1";
+const DEFAULT_ITEM_NAME_MAP = Object.fromEntries(
+  BUILDER_ITEMS.map((item) => [item.id, item.name]),
+);
 
 function buildEmptyGrid() {
   return Array.from({ length: LAYERS }, () =>
@@ -177,10 +177,12 @@ function createZeroCounts() {
 export default function BlockBuilder() {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
-  const hoverMeshRef = useRef(null);
-  const geometryCacheRef = useRef({});
-  const hoverShapeRef = useRef("cube");
+  const hoverGroupRef = useRef(null);
+  const hoverMaterialRef = useRef(null);
+  const hoverPreviewSignatureRef = useRef("");
+  const refreshHoverPreviewRef = useRef(() => {});
   const updateGhostRef = useRef(() => {});
+  const hasLoadedItemNamesRef = useRef(false);
 
   const selectedBlockRef = useRef(BUILDER_ITEMS[0]);
   const eraseModeRef = useRef(false);
@@ -192,49 +194,25 @@ export default function BlockBuilder() {
   const [currentLayer, setCurrentLayer] = useState(1);
   const [roofRotation, setRoofRotation] = useState(0);
   const [counts, setCounts] = useState(createZeroCounts);
+  const [itemNameMap, setItemNameMap] = useState(DEFAULT_ITEM_NAME_MAP);
 
   useEffect(() => {
     const block = BUILDER_ITEM_MAP.get(selectedBlockId);
     if (!block) return;
 
     selectedBlockRef.current = block;
-    const hoverMesh = hoverMeshRef.current;
-    if (!hoverMesh) return;
-
-    const shape = block.shape || "cube";
-    const geometryCache = geometryCacheRef.current;
-    const nextGeometry = geometryCache[shape];
-    if (nextGeometry && hoverShapeRef.current !== shape) {
-      hoverMesh.geometry = nextGeometry;
-      hoverShapeRef.current = shape;
-    }
-
-    hoverMesh.rotation.y =
-      shape === "roof" ? THREE.MathUtils.degToRad(roofRotationRef.current) : 0;
-
-    if (!eraseModeRef.current) {
-      hoverMesh.material.color.set(block.hex);
-      hoverMesh.material.opacity = 0.35;
-    }
+    refreshHoverPreviewRef.current();
   }, [selectedBlockId]);
 
   useEffect(() => {
     roofRotationRef.current = roofRotation;
-    const hoverMesh = hoverMeshRef.current;
-    if (!hoverMesh) return;
     if (selectedBlockRef.current.shape !== "roof") return;
-
-    hoverMesh.rotation.y = THREE.MathUtils.degToRad(roofRotation);
+    refreshHoverPreviewRef.current();
   }, [roofRotation]);
 
   useEffect(() => {
     eraseModeRef.current = eraseMode;
-    if (!hoverMeshRef.current) return;
-
-    hoverMeshRef.current.material.color.set(
-      eraseMode ? 0xff4444 : selectedBlockRef.current.hex,
-    );
-    hoverMeshRef.current.material.opacity = eraseMode ? 0.5 : 0.35;
+    refreshHoverPreviewRef.current();
   }, [eraseMode]);
 
   useEffect(() => {
@@ -243,12 +221,81 @@ export default function BlockBuilder() {
   }, [currentLayer]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const saved = window.localStorage.getItem(ITEM_NAME_STORAGE_KEY);
+      if (!saved) {
+        hasLoadedItemNamesRef.current = true;
+        return;
+      }
+
+      const parsed = JSON.parse(saved);
+      if (!parsed || typeof parsed !== "object") {
+        hasLoadedItemNamesRef.current = true;
+        return;
+      }
+
+      const mergedMap = { ...DEFAULT_ITEM_NAME_MAP };
+      BUILDER_ITEMS.forEach((item) => {
+        const savedName = parsed[item.id];
+        if (typeof savedName !== "string") return;
+
+        const normalized = savedName.trim();
+        if (normalized.length > 0) {
+          mergedMap[item.id] = normalized;
+        }
+      });
+      setItemNameMap(mergedMap);
+    } catch (error) {
+      console.error("Failed to load saved item names", error);
+    } finally {
+      hasLoadedItemNamesRef.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!hasLoadedItemNamesRef.current) return;
+
+    window.localStorage.setItem(
+      ITEM_NAME_STORAGE_KEY,
+      JSON.stringify(itemNameMap),
+    );
+  }, [itemNameMap]);
+
+  const getItemDisplayName = (item) => {
+    const savedName = itemNameMap[item.id];
+    if (typeof savedName !== "string") return item.name;
+
+    const normalized = savedName.trim();
+    return normalized.length > 0 ? normalized : item.name;
+  };
+
+  const updateItemName = (itemId, nextName) => {
+    setItemNameMap((prev) => ({ ...prev, [itemId]: nextName }));
+  };
+
+  const resetBlankItemName = (item) => {
+    setItemNameMap((prev) => {
+      const current = prev[item.id];
+      if (typeof current !== "string") return prev;
+      if (current.trim().length > 0) return prev;
+      if (current === item.name) return prev;
+
+      return { ...prev, [item.id]: item.name };
+    });
+  };
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return undefined;
 
     const placed = buildEmptyGrid();
     const meshMap = {};
+    const placementMap = {};
+    let placementCounter = 0;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -309,12 +356,10 @@ export default function BlockBuilder() {
     scene.add(ghostPlane);
 
     const roofProfile = new THREE.Shape();
-    roofProfile.moveTo(-CELL * 0.47, -CELL * 0.22);
-    roofProfile.lineTo(-CELL * 0.47, -CELL * 0.03);
-    roofProfile.lineTo(0, CELL * 0.37);
-    roofProfile.lineTo(CELL * 0.47, -CELL * 0.03);
-    roofProfile.lineTo(CELL * 0.47, -CELL * 0.22);
-    roofProfile.lineTo(-CELL * 0.47, -CELL * 0.22);
+    roofProfile.moveTo(-CELL * 0.47, -CELL * 0.47);
+    roofProfile.lineTo(-CELL * 0.47, CELL * 0.47);
+    roofProfile.lineTo(CELL * 0.47, -CELL * 0.47);
+    roofProfile.lineTo(-CELL * 0.47, -CELL * 0.47);
 
     const geometryCache = {
       cube: new THREE.BoxGeometry(CELL * 0.94, CELL * 0.94, CELL * 0.94),
@@ -326,20 +371,6 @@ export default function BlockBuilder() {
       }),
     };
     geometryCache.roof.center();
-    geometryCacheRef.current = geometryCache;
-
-    const hoverMesh = new THREE.Mesh(
-      geometryCache.cube,
-      new THREE.MeshLambertMaterial({
-        color: selectedBlockRef.current.hex,
-        transparent: true,
-        opacity: 0.35,
-      }),
-    );
-    hoverMesh.visible = false;
-    scene.add(hoverMesh);
-    hoverMeshRef.current = hoverMesh;
-    hoverShapeRef.current = "cube";
 
     const edgesCache = Object.entries(geometryCache).reduce(
       (acc, [shape, geometry]) => {
@@ -360,52 +391,193 @@ export default function BlockBuilder() {
       matCache[item.id] = new THREE.MeshLambertMaterial({ color: item.hex });
     });
 
+    const toCellKey = (layer, row, col) => `${layer}-${row}-${col}`;
+
+    const getItemFootprint = (item) => {
+      const rawWidth = item.footprint?.width ?? 1;
+      const rawHeight = item.footprint?.height ?? 1;
+
+      return {
+        width: Math.max(1, Math.floor(rawWidth)),
+        height: Math.max(1, Math.floor(rawHeight)),
+      };
+    };
+
+    const getPlacementCells = (item, row, col, layer) => {
+      if (layer < 1 || layer > LAYERS) return null;
+      if (row < 0 || row >= GRID || col < 0 || col >= GRID) return null;
+
+      const { width, height } = getItemFootprint(item);
+      const cells = [];
+
+      for (let layerOffset = 0; layerOffset < height; layerOffset += 1) {
+        const nextLayer = layer + layerOffset;
+        if (nextLayer < 1 || nextLayer > LAYERS) return null;
+
+        for (let colOffset = 0; colOffset < width; colOffset += 1) {
+          const nextCol = col + colOffset;
+          if (nextCol < 0 || nextCol >= GRID) return null;
+          cells.push({ row, col: nextCol, layer: nextLayer });
+        }
+      }
+
+      return cells;
+    };
+
+    const canPlaceCells = (cells) => {
+      if (!cells || cells.length === 0) return false;
+      return cells.every(
+        ({ row, col, layer }) => !placed[layer - 1][row][col],
+      );
+    };
+
+    const hoverMaterial = new THREE.MeshLambertMaterial({
+      color: selectedBlockRef.current.hex,
+      transparent: true,
+      opacity: 0.35,
+    });
+    const hoverGroup = new THREE.Group();
+    hoverGroup.visible = false;
+    scene.add(hoverGroup);
+    hoverGroupRef.current = hoverGroup;
+    hoverMaterialRef.current = hoverMaterial;
+
+    const refreshHoverPreview = () => {
+      const selected = selectedBlockRef.current;
+      if (!selected) return;
+
+      const shape = selected.shape || "cube";
+      const { width, height } = getItemFootprint(selected);
+      const previewSignature = `${shape}:${width}x${height}`;
+
+      if (hoverPreviewSignatureRef.current !== previewSignature) {
+        while (hoverGroup.children.length > 0) {
+          hoverGroup.remove(hoverGroup.children[0]);
+        }
+
+        const geometry = geometryCache[shape] || geometryCache.cube;
+        for (let layerOffset = 0; layerOffset < height; layerOffset += 1) {
+          for (let colOffset = 0; colOffset < width; colOffset += 1) {
+            const previewMesh = new THREE.Mesh(geometry, hoverMaterial);
+            previewMesh.position.set(colOffset, layerOffset * CELL, 0);
+            hoverGroup.add(previewMesh);
+          }
+        }
+
+        hoverPreviewSignatureRef.current = previewSignature;
+      }
+
+      const rotationY =
+        shape === "roof"
+          ? THREE.MathUtils.degToRad(roofRotationRef.current)
+          : 0;
+      hoverGroup.children.forEach((previewMesh) => {
+        previewMesh.rotation.y = rotationY;
+      });
+
+      hoverMaterial.color.set(eraseModeRef.current ? 0xff4444 : selected.hex);
+      hoverMaterial.opacity = eraseModeRef.current ? 0.5 : 0.35;
+    };
+
+    refreshHoverPreviewRef.current = refreshHoverPreview;
+    refreshHoverPreview();
+
     const updateCounts = () => {
       const nextCounts = createZeroCounts();
       for (let l = 0; l < LAYERS; l += 1) {
         for (let r = 0; r < GRID; r += 1) {
           for (let c = 0; c < GRID; c += 1) {
-            const blockId = placed[l][r][c];
-            if (blockId) nextCounts[blockId] += 1;
+            const cell = placed[l][r][c];
+            if (!cell || !cell.isAnchor || !cell.itemId) continue;
+            nextCounts[cell.itemId] += 1;
           }
         }
       }
       setCounts(nextCounts);
     };
 
-    const placeBlock = (row, col, layer) => {
-      if (layer < 1 || layer > LAYERS) return;
-      if (row < 0 || row >= GRID || col < 0 || col >= GRID) return;
-      if (placed[layer - 1][row][col]) return;
+    const clearPlacementById = (placementId) => {
+      const placement = placementMap[placementId];
+      if (!placement) return;
 
+      placement.cells.forEach(({ row, col, layer }) => {
+        placed[layer - 1][row][col] = null;
+        const key = toCellKey(layer, row, col);
+        const mesh = meshMap[key];
+        if (mesh) {
+          scene.remove(mesh);
+          delete meshMap[key];
+        }
+      });
+
+      delete placementMap[placementId];
+    };
+
+    const placeBlock = (row, col, layer) => {
       const selected = selectedBlockRef.current;
-      placed[layer - 1][row][col] = selected.id;
+      const cells = getPlacementCells(selected, row, col, layer);
+      if (!canPlaceCells(cells)) return;
+
+      placementCounter += 1;
+      const placementId = `placement-${placementCounter}`;
+      placementMap[placementId] = {
+        id: placementId,
+        itemId: selected.id,
+        cells,
+      };
 
       const shape = selected.shape || "cube";
       const geometry = geometryCache[shape] || geometryCache.cube;
       const edges = edgesCache[shape] || edgesCache.cube;
-
-      const mesh = new THREE.Mesh(geometry, matCache[selected.id]);
-      mesh.position.set(col, (layer - 1) * CELL + CELL * 0.5, row);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      mesh.rotation.y =
+      const rotationY =
         shape === "roof"
           ? THREE.MathUtils.degToRad(roofRotationRef.current)
           : 0;
-      mesh.userData = { row, col, layer, itemId: selected.id, shape };
-      mesh.add(new THREE.LineSegments(edges, edgeMat));
 
-      scene.add(mesh);
-      meshMap[`${layer}-${row}-${col}`] = mesh;
+      cells.forEach((cell, index) => {
+        placed[cell.layer - 1][cell.row][cell.col] = {
+          itemId: selected.id,
+          placementId,
+          isAnchor: index === 0,
+        };
+
+        const mesh = new THREE.Mesh(geometry, matCache[selected.id]);
+        mesh.position.set(
+          cell.col,
+          (cell.layer - 1) * CELL + CELL * 0.5,
+          cell.row,
+        );
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.rotation.y = rotationY;
+        mesh.userData = {
+          row: cell.row,
+          col: cell.col,
+          layer: cell.layer,
+          itemId: selected.id,
+          shape,
+          placementId,
+          isAnchor: index === 0,
+        };
+        mesh.add(new THREE.LineSegments(edges, edgeMat));
+
+        scene.add(mesh);
+        meshMap[toCellKey(cell.layer, cell.row, cell.col)] = mesh;
+      });
+
       updateCounts();
     };
 
     const removeBlock = (mesh) => {
-      const { row, col, layer } = mesh.userData;
-      placed[layer - 1][row][col] = null;
-      scene.remove(mesh);
-      delete meshMap[`${layer}-${row}-${col}`];
+      const { placementId, row, col, layer } = mesh.userData;
+      if (placementId) {
+        clearPlacementById(placementId);
+      } else {
+        placed[layer - 1][row][col] = null;
+        scene.remove(mesh);
+        delete meshMap[toCellKey(layer, row, col)];
+      }
+
       updateCounts();
     };
 
@@ -416,6 +588,10 @@ export default function BlockBuilder() {
       Object.keys(meshMap).forEach((key) => {
         delete meshMap[key];
       });
+      Object.keys(placementMap).forEach((key) => {
+        delete placementMap[key];
+      });
+      placementCounter = 0;
 
       for (let l = 0; l < LAYERS; l += 1) {
         for (let r = 0; r < GRID; r += 1) {
@@ -565,22 +741,23 @@ export default function BlockBuilder() {
         pointerMoved = true;
       }
 
-      if (event.type === "mousemove") {
-        const info = getGridCell(event);
-        if (
-          info &&
-          info.type === "place" &&
-          !placed[info.layer - 1][info.row][info.col]
-        ) {
-          hoverMesh.visible = true;
-          hoverMesh.position.set(
-            info.col,
-            (info.layer - 1) * CELL + CELL * 0.5,
-            info.row,
-          );
-        } else {
-          hoverMesh.visible = false;
+      const info = getGridCell(event);
+      if (info && info.type === "place") {
+        const selected = selectedBlockRef.current;
+        const cells = getPlacementCells(selected, info.row, info.col, info.layer);
+        if (!canPlaceCells(cells)) {
+          hoverGroup.visible = false;
+          return;
         }
+
+        hoverGroup.visible = true;
+        hoverGroup.position.set(
+          info.col,
+          (info.layer - 1) * CELL + CELL * 0.5,
+          info.row,
+        );
+      } else {
+        hoverGroup.visible = false;
       }
     };
 
@@ -638,8 +815,10 @@ export default function BlockBuilder() {
         scene.remove(mesh);
       });
 
-      hoverMeshRef.current = null;
-      geometryCacheRef.current = {};
+      hoverGroupRef.current = null;
+      hoverMaterialRef.current = null;
+      hoverPreviewSignatureRef.current = "";
+      refreshHoverPreviewRef.current = () => {};
       updateGhostRef.current = () => {};
 
       Object.values(geometryCache).forEach((geometry) => geometry.dispose());
@@ -649,7 +828,7 @@ export default function BlockBuilder() {
       baseMesh.material.dispose();
       ghostPlane.geometry.dispose();
       ghostPlane.material.dispose();
-      hoverMesh.material.dispose();
+      hoverMaterial.dispose();
       Object.values(matCache).forEach((material) => material.dispose());
 
       renderer.dispose();
@@ -751,7 +930,9 @@ export default function BlockBuilder() {
                               : { background: item.color }
                           }
                         />
-                        <span className='min-w-0 truncate'>{item.name}</span>
+                        <span className='min-w-0 truncate'>
+                          {getItemDisplayName(item)}
+                        </span>
                       </button>
                     );
                   })}
@@ -866,10 +1047,17 @@ export default function BlockBuilder() {
                             : { background: item.color }
                         }
                       />
-                      <span className='flex-1 text-[11px] tracking-[0.04em] lg:text-[10px]'>
-                        {item.name}
-                      </span>
-                      <span className='text-[13px] font-bold text-[#a0c4ff] lg:text-[12px]'>
+                      <input
+                        className='min-w-0 flex-1 rounded border border-[#2f3555] bg-white/5 px-2 py-1 text-[11px] tracking-[0.04em] text-[#e6ebff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
+                        onBlur={() => resetBlankItemName(item)}
+                        onChange={(event) =>
+                          updateItemName(item.id, event.target.value)
+                        }
+                        placeholder={item.name}
+                        type='text'
+                        value={itemNameMap[item.id] ?? item.name}
+                      />
+                      <span className='w-7 text-right text-[13px] font-bold text-[#a0c4ff] lg:text-[12px]'>
                         {counts[item.id]}
                       </span>
                     </div>

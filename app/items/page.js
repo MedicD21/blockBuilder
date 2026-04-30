@@ -3,10 +3,13 @@ import Image from 'next/image';
 import { Suspense } from 'react';
 import { ItemsExplorer } from '@/components/ItemsExplorer';
 import { getItemsDataset } from '@/lib/items-dataset';
+import pokemonDataset from '@/data/pokemon-data.json';
+import tagSpriteMap from '@/data/serebii-tag-sprites.json';
 
 export const metadata = {
   title: 'Pokopia Items',
-  description: 'Card-based item explorer with section collapse and favorite-type filters.',
+  description:
+    'Card-based item explorer with section collapse, favorite-type filters, and Pokemon favorite matching.',
 };
 
 export default function ItemsPage() {
@@ -56,7 +59,11 @@ export default function ItemsPage() {
             </div>
           }
         >
-          <ItemsExplorer dataset={dataset} />
+          <ItemsExplorer
+            dataset={dataset}
+            pokemonDataset={pokemonDataset}
+            tagSpriteMap={tagSpriteMap}
+          />
         </Suspense>
       </main>
     </div>
