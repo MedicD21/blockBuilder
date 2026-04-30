@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 const BLOCKS = [
-  { id: 'wood', name: 'WOOD', color: '#8B5E3C', hex: 0x8b5e3c },
-  { id: 'stone', name: 'STONE', color: '#888899', hex: 0x888899 },
-  { id: 'dirt', name: 'DIRT', color: '#7B5230', hex: 0x7b5230 },
-  { id: 'grass', name: 'GRASS', color: '#4CAF50', hex: 0x4caf50 },
-  { id: 'planks', name: 'PLANKS', color: '#C8A86B', hex: 0xc8a86b },
-  { id: 'brick', name: 'BRICK', color: '#B24B3A', hex: 0xb24b3a },
-  { id: 'glass', name: 'GLASS', color: '#9ECFFF', hex: 0x9ecfff },
-  { id: 'iron', name: 'IRON', color: '#C0C0C0', hex: 0xc0c0c0 },
-  { id: 'sand', name: 'SAND', color: '#E8D8A0', hex: 0xe8d8a0 },
-  { id: 'dark', name: 'DARK STN', color: '#444466', hex: 0x444466 },
+  { id: "wood", name: "WOOD", color: "#8B5E3C", hex: 0x8b5e3c },
+  { id: "stone", name: "STONE", color: "#888899", hex: 0x888899 },
+  { id: "dirt", name: "DIRT", color: "#7B5230", hex: 0x7b5230 },
+  { id: "grass", name: "GRASS", color: "#4CAF50", hex: 0x4caf50 },
+  { id: "planks", name: "PLANKS", color: "#C8A86B", hex: 0xc8a86b },
+  { id: "brick", name: "BRICK", color: "#B24B3A", hex: 0xb24b3a },
+  { id: "glass", name: "GLASS", color: "#9ECFFF", hex: 0x9ecfff },
+  { id: "iron", name: "IRON", color: "#C0C0C0", hex: 0xc0c0c0 },
+  { id: "sand", name: "SAND", color: "#E8D8A0", hex: 0xe8d8a0 },
+  { id: "dark", name: "DARK STN", color: "#444466", hex: 0x444466 },
 ];
 
 const GRID = 16;
-const LAYERS = 8;
+const LAYERS = 18;
 const CELL = 1;
-const CLEAR_EVENT = 'block-builder-clear';
+const CLEAR_EVENT = "block-builder-clear";
 
 function buildEmptyGrid() {
   return Array.from({ length: LAYERS }, () =>
@@ -155,7 +155,11 @@ export default function BlockBuilder() {
     scene.add(hoverMesh);
     hoverMeshRef.current = hoverMesh;
 
-    const blockGeo = new THREE.BoxGeometry(CELL * 0.94, CELL * 0.94, CELL * 0.94);
+    const blockGeo = new THREE.BoxGeometry(
+      CELL * 0.94,
+      CELL * 0.94,
+      CELL * 0.94,
+    );
     const edgesSource = new THREE.BoxGeometry(
       CELL * 0.94,
       CELL * 0.94,
@@ -295,7 +299,7 @@ export default function BlockBuilder() {
           }
 
           if (eraseModeRef.current) {
-            return { type: 'block', mesh };
+            return { type: "block", mesh };
           }
 
           const normal = hit.face
@@ -328,7 +332,7 @@ export default function BlockBuilder() {
             return null;
 
           return {
-            type: 'place',
+            type: "place",
             row: nextRow,
             col: nextCol,
             layer: nextLayer,
@@ -346,7 +350,7 @@ export default function BlockBuilder() {
         if (eraseModeRef.current) return null;
 
         return {
-          type: 'place',
+          type: "place",
           row,
           col,
           layer: currentLayerRef.current,
@@ -372,11 +376,11 @@ export default function BlockBuilder() {
         pointerMoved = true;
       }
 
-      if (event.type === 'mousemove') {
+      if (event.type === "mousemove") {
         const info = getGridCell(event);
         if (
           info &&
-          info.type === 'place' &&
+          info.type === "place" &&
           !placed[info.layer - 1][info.row][info.col]
         ) {
           hoverMesh.visible = true;
@@ -393,29 +397,29 @@ export default function BlockBuilder() {
 
     const onPointerUp = (event) => {
       try {
-        if (event.type === 'mouseup' && Date.now() - lastTouchEnd < 500) return;
-        if (event.type === 'touchend') lastTouchEnd = Date.now();
+        if (event.type === "mouseup" && Date.now() - lastTouchEnd < 500) return;
+        if (event.type === "touchend") lastTouchEnd = Date.now();
         if (pointerMoved) return;
 
         const info = getGridCell(event);
         if (!info) return;
 
-        if (info.type === 'block') {
+        if (info.type === "block") {
           removeBlock(info.mesh);
-        } else if (info.type === 'place') {
+        } else if (info.type === "place") {
           placeBlock(info.row, info.col, info.layer);
         }
       } catch (error) {
-        console.error('tap error:', error);
+        console.error("tap error:", error);
       }
     };
 
-    canvas.addEventListener('mousedown', onPointerDown);
-    canvas.addEventListener('touchstart', onPointerDown, { passive: true });
-    canvas.addEventListener('mousemove', onPointerMove);
-    canvas.addEventListener('touchmove', onPointerMove, { passive: true });
-    canvas.addEventListener('mouseup', onPointerUp);
-    canvas.addEventListener('touchend', onPointerUp);
+    canvas.addEventListener("mousedown", onPointerDown);
+    canvas.addEventListener("touchstart", onPointerDown, { passive: true });
+    canvas.addEventListener("mousemove", onPointerMove);
+    canvas.addEventListener("touchmove", onPointerMove, { passive: true });
+    canvas.addEventListener("mouseup", onPointerUp);
+    canvas.addEventListener("touchend", onPointerUp);
     window.addEventListener(CLEAR_EVENT, clearAllBlocks);
 
     let animationFrameId;
@@ -429,12 +433,12 @@ export default function BlockBuilder() {
     updateCounts();
 
     return () => {
-      canvas.removeEventListener('mousedown', onPointerDown);
-      canvas.removeEventListener('touchstart', onPointerDown);
-      canvas.removeEventListener('mousemove', onPointerMove);
-      canvas.removeEventListener('touchmove', onPointerMove);
-      canvas.removeEventListener('mouseup', onPointerUp);
-      canvas.removeEventListener('touchend', onPointerUp);
+      canvas.removeEventListener("mousedown", onPointerDown);
+      canvas.removeEventListener("touchstart", onPointerDown);
+      canvas.removeEventListener("mousemove", onPointerMove);
+      canvas.removeEventListener("touchmove", onPointerMove);
+      canvas.removeEventListener("mouseup", onPointerUp);
+      canvas.removeEventListener("touchend", onPointerUp);
       window.removeEventListener(CLEAR_EVENT, clearAllBlocks);
 
       window.cancelAnimationFrame(animationFrameId);
@@ -469,35 +473,43 @@ export default function BlockBuilder() {
   );
 
   return (
-    <main className="flex min-h-[100dvh] flex-col overflow-hidden bg-[#1a1a2e] text-[#e0e0e0]">
-      <header className="z-10 flex items-center gap-3 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-3 py-2">
-        <h1 className="whitespace-nowrap text-[14px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff]">
+    <main className='flex min-h-[100dvh] flex-col overflow-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
+      <header className='z-10 flex items-center gap-3 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-3 py-2'>
+        <h1 className='whitespace-nowrap text-[20px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff]'>
           Block Builder
         </h1>
-        <div className="flex-1" />
-        <p className="hidden whitespace-nowrap text-[10px] tracking-[0.1em] text-[#666] md:block">
+        <p className='hidden whitespace-nowrap text-[15px] tracking-[0.1em] text-[#666] md:block'>
           TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM
         </p>
+        <div className='flex-1' />
         <Link
-          className="whitespace-nowrap text-[10px] tracking-[0.1em] text-[#666] transition-colors hover:text-[#a0c4ff]"
-          href="/items"
+          className='whitespace-nowrap text-[20px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff]'
+          href='/pokemon-explorer'
+        >
+          POKEMON ↗
+        </Link>
+        <Link
+          className='whitespace-nowrap text-[20px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff]'
+          href='/items'
         >
           ITEMS ↗
         </Link>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="relative flex-1" ref={wrapRef}>
-          <canvas className="block h-full w-full" ref={canvasRef} />
-          <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#3a3a5c] bg-black/60 px-3 py-1 text-[10px] tracking-[0.1em] text-[#666]">
+      <div className='flex flex-1 overflow-hidden'>
+        <div className='relative flex-1' ref={wrapRef}>
+          <canvas className='block h-full w-full' ref={canvasRef} />
+          <div className='pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#3a3a5c] bg-black/60 px-3 py-1 text-[10px] tracking-[0.1em] text-[#666]'>
             Tap grid to place blocks
           </div>
         </div>
 
-        <aside className="flex w-[170px] flex-shrink-0 flex-col overflow-hidden border-l-2 border-[#3a3a5c] bg-[rgba(10,10,20,.97)]">
-          <div className="border-b border-[#3a3a5c] px-2 pb-1 pt-2">
-            <h2 className="mb-2 text-[9px] uppercase tracking-[0.2em] text-[#666]">Blocks</h2>
-            <div className="space-y-1">
+        <aside className='flex w-[170px] flex-shrink-0 flex-col overflow-hidden border-l-2 border-[#3a3a5c] bg-[rgba(10,10,20,.97)]'>
+          <div className='border-b border-[#3a3a5c] px-2 pb-1 pt-2'>
+            <h2 className='mb-2 text-[9px] uppercase tracking-[0.2em] text-[#666]'>
+              Blocks
+            </h2>
+            <div className='space-y-1'>
               {BLOCKS.map((block) => {
                 const active = !eraseMode && selectedBlockId === block.id;
                 return (
@@ -505,17 +517,17 @@ export default function BlockBuilder() {
                     key={block.id}
                     className={`flex w-full items-center gap-2 rounded border px-2 py-1 text-left text-[11px] tracking-[0.08em] transition-all ${
                       active
-                        ? 'border-[#a0c4ff] bg-[rgba(160,196,255,.15)] text-white'
-                        : 'border-transparent bg-white/5 text-[#ccc] hover:border-[#555] hover:bg-white/10'
+                        ? "border-[#a0c4ff] bg-[rgba(160,196,255,.15)] text-white"
+                        : "border-transparent bg-white/5 text-[#ccc] hover:border-[#555] hover:bg-white/10"
                     }`}
                     onClick={() => {
                       setSelectedBlockId(block.id);
                       setEraseMode(false);
                     }}
-                    type="button"
+                    type='button'
                   >
                     <span
-                      className="h-[14px] w-[14px] flex-shrink-0 rounded-[2px] border border-white/15"
+                      className='h-[14px] w-[14px] flex-shrink-0 rounded-[2px] border border-white/15'
                       style={{ background: block.color }}
                     />
                     {block.name}
@@ -528,65 +540,78 @@ export default function BlockBuilder() {
           <button
             className={`mx-2 mb-2 mt-0 rounded border px-2 py-1 text-[10px] tracking-[0.1em] transition-all ${
               eraseMode
-                ? 'border-[#ff5050] bg-[rgba(255,80,80,.2)] text-white'
-                : 'border-[#5a2a2a] bg-[rgba(255,80,80,.08)] text-[#ff9090] hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white'
+                ? "border-[#ff5050] bg-[rgba(255,80,80,.2)] text-white"
+                : "border-[#5a2a2a] bg-[rgba(255,80,80,.08)] text-[#ff9090] hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white"
             }`}
             onClick={() => setEraseMode((prev) => !prev)}
-            type="button"
+            type='button'
           >
             ✕ ERASE
           </button>
 
-          <div className="border-y border-[#3a3a5c] px-2 py-2">
-            <h2 className="mb-1 text-[9px] uppercase tracking-[0.2em] text-[#666]">Layer</h2>
-            <div className="flex items-center gap-2">
+          <div className='border-y border-[#3a3a5c] px-2 py-2'>
+            <h2 className='mb-1 text-[9px] uppercase tracking-[0.2em] text-[#666]'>
+              Layer
+            </h2>
+            <div className='flex items-center gap-2'>
               <button
-                className="flex h-6 w-6 items-center justify-center rounded border border-[#444] bg-white/5 text-[14px] text-[#aaa] transition-colors hover:bg-white/15"
+                className='flex h-6 w-6 items-center justify-center rounded border border-[#444] bg-white/5 text-[14px] text-[#aaa] transition-colors hover:bg-white/15'
                 onClick={() => setCurrentLayer((prev) => Math.max(1, prev - 1))}
-                type="button"
+                type='button'
               >
                 −
               </button>
-              <div className="min-w-5 text-center text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]">
+              <div className='min-w-5 text-center text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
                 {currentLayer}
               </div>
               <button
-                className="flex h-6 w-6 items-center justify-center rounded border border-[#444] bg-white/5 text-[14px] text-[#aaa] transition-colors hover:bg-white/15"
-                onClick={() => setCurrentLayer((prev) => Math.min(LAYERS, prev + 1))}
-                type="button"
+                className='flex h-6 w-6 items-center justify-center rounded border border-[#444] bg-white/5 text-[14px] text-[#aaa] transition-colors hover:bg-white/15'
+                onClick={() =>
+                  setCurrentLayer((prev) => Math.min(LAYERS, prev + 1))
+                }
+                type='button'
               >
                 +
               </button>
-              <div className="ml-0.5 text-[10px] text-[#555]">/ {LAYERS}</div>
+              <div className='ml-0.5 text-[10px] text-[#555]'>/ {LAYERS}</div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-2 pb-1 pt-2">
-            <h2 className="mb-2 text-[9px] uppercase tracking-[0.2em] text-[#666]">Block Count</h2>
+          <div className='flex-1 overflow-y-auto px-2 pb-1 pt-2'>
+            <h2 className='mb-2 text-[9px] uppercase tracking-[0.2em] text-[#666]'>
+              Block Count
+            </h2>
             {BLOCKS.filter((block) => counts[block.id] > 0).map((block) => (
-              <div className="mb-1 flex items-center gap-[7px] text-[11px] text-[#bbb]" key={block.id}>
+              <div
+                className='mb-1 flex items-center gap-[7px] text-[11px] text-[#bbb]'
+                key={block.id}
+              >
                 <span
-                  className="h-[10px] w-[10px] flex-shrink-0 rounded-[2px] border border-white/15"
+                  className='h-[10px] w-[10px] flex-shrink-0 rounded-[2px] border border-white/15'
                   style={{ background: block.color }}
                 />
-                <span className="flex-1 text-[10px] tracking-[0.04em]">{block.name}</span>
-                <span className="text-[12px] font-bold text-[#a0c4ff]">{counts[block.id]}</span>
+                <span className='flex-1 text-[10px] tracking-[0.04em]'>
+                  {block.name}
+                </span>
+                <span className='text-[12px] font-bold text-[#a0c4ff]'>
+                  {counts[block.id]}
+                </span>
               </div>
             ))}
 
-            <div className="mt-2 flex items-center justify-between border-t border-[#3a3a5c] pt-2 text-[10px] tracking-[0.1em] text-[#888]">
+            <div className='mt-2 flex items-center justify-between border-t border-[#3a3a5c] pt-2 text-[10px] tracking-[0.1em] text-[#888]'>
               TOTAL
-              <span className="text-[13px] font-bold text-white">{total}</span>
+              <span className='text-[13px] font-bold text-white'>{total}</span>
             </div>
           </div>
 
           <button
-            className="m-2 rounded border border-[#3a3a5c] bg-transparent px-2 py-1 text-[10px] tracking-[0.1em] text-[#666] transition-all hover:border-[#ff5050] hover:text-[#ff9090]"
+            className='m-2 rounded border border-[#3a3a5c] bg-transparent px-2 py-1 text-[10px] tracking-[0.1em] text-[#666] transition-all hover:border-[#ff5050] hover:text-[#ff9090]'
             onClick={() => {
               const event = new CustomEvent(CLEAR_EVENT);
               window.dispatchEvent(event);
             }}
-            type="button"
+            type='button'
           >
             CLEAR ALL
           </button>

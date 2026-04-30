@@ -29,6 +29,7 @@ Open `http://localhost:3000`.
 
 - `/` - 3D block builder (React + Three.js)
 - `/items` - item browser page (loads `public/items.html`)
+- `/pokemon-explorer` - searchable/filterable Pokemon explorer from the export kit
 
 ## Notes
 
