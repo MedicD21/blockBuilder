@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Pokopia Block Builder</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="topbar">
+      <h1>&#x2B1B; Block Builder</h1>
+      <div class="sep"></div>
+      <div class="hint">
+        TAP = PLACE &nbsp;|&nbsp; DRAG = ROTATE &nbsp;|&nbsp; PINCH = ZOOM
+      </div>
+    </div>
+    <div id="layout">
+      <div id="canvas-wrap">
+        <canvas id="c"></canvas>
+        <div id="tap-hint">Tap grid to place blocks</div>
+      </div>
+      <div id="panel">
+        <div id="palette"><h2>Blocks</h2></div>
+        <button id="erase-btn">&#x2715; ERASE</button>
+        <div id="layer-ctrl">
+          <h2>Layer</h2>
+          <div class="row">
+            <button id="layer-down">&#x2212;</button>
+            <div id="layer-val">1</div>
+            <button id="layer-up">+</button>
+            <div style="font-size: 10px; color: #555; margin-left: 2px">
+              / 8
+            </div>
+          </div>
+        </div>
+        <div id="counts">
+          <h2>Block Count</h2>
+          <div id="count-list"></div>
+          <div id="total-row">TOTAL <span id="total-num">0</span></div>
+        </div>
+        <button id="clear-btn">CLEAR ALL</button>
+      </div>
+    </div>
+
+    <script type="module" src="scripts.js"></script>
+  </body>
+</html>
