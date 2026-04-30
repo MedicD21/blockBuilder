@@ -1,8 +1,9 @@
-﻿# Noisy Stuff
+# Noisy Stuff
 
 | Name | Description |
 |------|-------------|
 | Alarm Clock | A loud noise rings out when you press this. Be careful! You might accidentally wake someone up |
+| CD player | A device that plays music. If you find a CD, try putting it inside |
 | Cool electric guitar | A snazzy guitat strung with strange strings. Holding it would make you feel pretty amped... |
 | Cool bass guitar | A snazzy bass guitar strung with strange strings. Holding it would make you feel pretty low-key... |
 | Speaker | Putting this next to a stage or an audio mixer ought to create an electrifying atmosphere! |

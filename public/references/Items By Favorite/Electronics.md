@@ -1,4 +1,4 @@
-﻿# Electronics
+# Electronics
 
 | Name | Description |
 |------|-------------|

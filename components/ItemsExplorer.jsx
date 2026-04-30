@@ -287,8 +287,8 @@ export function ItemsExplorer({ dataset }) {
                               Locations
                             </p>
                             <ul className='space-y-1 text-[12px] leading-relaxed text-[#93a0c0]'>
-                              {item.locations.map((location) => (
-                                <li key={`${item.id}-${location}`}>• {location}</li>
+                              {item.locations.map((location, index) => (
+                                <li key={`${item.id}-${location}-${index}`}>• {location}</li>
                               ))}
                             </ul>
                           </div>

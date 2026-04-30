@@ -1,4 +1,4 @@
-﻿# Hard Stuff
+# Hard Stuff
 
 | Name | Description |
 |------|-------------|
@@ -13,6 +13,8 @@
 | Stone tiling (wallpaper) | Wallpaper that can be used in larger houses. You can appliy it to walls, floors and even ceilings |
 | Stone flooring (wallpaper) | Wallpaper that can be used in larger houses. You can appliy it to walls, floors and even ceilings |
 | Stone brick wall (wallpaper) | Wallpaper that can be used in larger houses. You can appliy it to walls, floors and even ceilings |
+| Iron Ball | A round, black iron ball. Try hanging it up in a frame! |
+| Lagging Tail | A tremendously heavy tail of something. Try hanging it up in a frame! |
 | Skull Fossil | An ancient Pokémon fossil. It looks like a hard, sturdy skill |
 | Armor Fossil | An ancient Pokémon fossil. It looks like a smooth shield |
 | Jaw Fossil | An ancient Pokémon fossil. It looks like a large jaw |
@@ -28,7 +30,7 @@
 | Shield Fossil (Head) | A fossil of an ancient Pokémon's head. Its sturdy, like a giant shield |
 | Shield Fossil (body) | A fossil of an ancient Pokémon's body. Its thick bones supported a heavy head. |
 | Shield Fossil (tail) | A fossil of an ancient Pokémon's tail. Its hind hooves are particularly large. |
-| Despot Fossil (head) | A fossil of an ancient Pokémon's headf. Its large fangs are as sharp as knives |
+| Despot Fossil (head) | A fossil of an ancient Pokémon's head. Its large fangs are as sharp as knives |
 | Despot Fossil (body) | A fossil of an ancient Pokémon's body. Its sharp claws look like they could slice through anything |
 | Despot Fossil (legs) | A fossil of an ancient Pokémon's legs. Two stocky legs support the rest of its body. |
 | Despot Fossil (tail) | A fossil of an ancient Pokémon's tail. Even the very tip is spiky like its frill |
@@ -45,6 +47,5 @@
 | Stone hipped roof | You can arrange these vertically or horizontally to make a roof |
 | Stone roof valley | When you're planning out the shape of your roof, putting in some valleys adds a really nice touch |
 | Stone roof decoration | Try putting this on a roof! It looks great whether you install one or a whole bunch |
-| Stone fencing | Looks great on its own or arranged in a row. |
-| Stone debris | Sometimes found blocking the road. Break them to obtain stones. |
-| Metal Debris | It's hard to tell what these warn out objects were originally. They look difficult to process as is. |
+| Stone debris | Sometimes found blocking the road. Break them to obtain stones. Note: Not registered in collection |
+| Metal Debris | It's hard to tell what these warn out objects were originally. They look difficult to process as is. Note: Not registered in collection |

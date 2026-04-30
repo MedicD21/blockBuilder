@@ -18,7 +18,7 @@ const BLOCKS = [
   { id: "dark", name: "DARK STN", color: "#444466", hex: 0x444466 },
 ];
 
-const GRID = 16;
+const GRID = 30;
 const LAYERS = 18;
 const CELL = 1;
 const CLEAR_EVENT = "block-builder-clear";
