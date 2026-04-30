@@ -26,7 +26,7 @@ export default function HomePage() {
             />
           </Link>
           <h1 className='mt-6 text-3xl font-extrabold uppercase tracking-[0.2em] text-[#a0c4ff] sm:text-4xl lg:text-5xl'>
-            Planner DB
+            Building Planner & DB
           </h1>
           <p className='mt-3 max-w-2xl text-sm tracking-[0.08em] text-[#9aa6c7] sm:text-base'>
             Build layouts, browse item data, and discover Pokemon favorites in

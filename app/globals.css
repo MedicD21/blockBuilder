@@ -34,3 +34,67 @@ body {
   background: #3a3a5c;
   border-radius: 3px;
 }
+
+.bmc-fixed-button {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 65;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid #000;
+  background: #40dca5;
+  color: #ffffff;
+  text-decoration: none;
+  font-family: Lato, "Courier New", Courier, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.14s ease;
+}
+
+.bmc-fixed-button:hover {
+  transform: translateY(-1px);
+}
+
+.bmc-fixed-icon {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+}
+
+.bmc-fixed-text {
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .bmc-fixed-button {
+    left: 10px;
+    bottom: 10px;
+    width: 46px;
+    min-width: 46px;
+    max-width: 46px;
+    min-height: 46px;
+    height: 46px;
+    padding: 0;
+    border-radius: 9999px;
+    gap: 0;
+  }
+
+  .bmc-fixed-icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+  }
+
+  .bmc-fixed-text {
+    display: none;
+  }
+}
