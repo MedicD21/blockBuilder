@@ -27,23 +27,58 @@ const BUILDER_SECTIONS = [
       },
       {
         id: "stonebrickwall",
-        name: "Stone brick wall",
+        name: "Stone Brick Wall",
         color: "#888899",
         hex: 0x888899,
         shape: "cube",
       },
       {
         id: "brickwall",
-        name: "Brick wall",
+        name: "Brick Wall",
         color: "#B24B3A",
         hex: 0xb24b3a,
         shape: "cube",
       },
       {
         id: "plasterwall",
-        name: "Plaster wall",
-        color: "#D5C2A4",
-        hex: 0xd5c2a4,
+        name: "Plaster Wall",
+        color: "#f8f4ef",
+        hex: 0xf8f4ef,
+        shape: "cube",
+      },
+      {
+        id: "fancywall",
+        name: "Fancy Wall",
+        color: "#f60d0d",
+        hex: 0xf60d0d,
+        shape: "cube",
+      },
+      {
+        id: "ironwall",
+        name: "Iron Wall",
+        color: "#545454",
+        hex: 0x545454,
+        shape: "cube",
+      },
+      {
+        id: "topsectionwalls",
+        name: "Top Section Walls",
+        color: "#ffeccd",
+        hex: 0xffeccd,
+        shape: "cube",
+      },
+      {
+        id: "middlesectionwalls",
+        name: "Middle Section Walls",
+        color: "#f8e2bd",
+        hex: 0xf8e2bd,
+        shape: "cube",
+      },
+      {
+        id: "bottomsectionwalls",
+        name: "Bottom Section Walls",
+        color: "#dcc49d",
+        hex: 0xdcc49d,
         shape: "cube",
       },
     ],
@@ -54,7 +89,7 @@ const BUILDER_SECTIONS = [
     items: [
       {
         id: "singledoor",
-        name: "Single door (1x2)",
+        name: "Single Door (1x2)",
         color: "#228B22",
         hex: 0x228b22,
         shape: "cube",
@@ -62,15 +97,15 @@ const BUILDER_SECTIONS = [
       },
       {
         id: "doubledoor",
-        name: "Double door (2x2)",
-        color: "#C0C0C0",
-        hex: 0xc0c0c0,
+        name: "Double Door (2x2)",
+        color: "#828282",
+        hex: 0x828282,
         shape: "cube",
         footprint: { width: 2, height: 2 },
       },
       {
         id: "largedoor",
-        name: "Large door (2x3)",
+        name: "Large Door (2x3)",
         color: "#111111",
         hex: 0x111111,
         shape: "cube",
@@ -84,28 +119,28 @@ const BUILDER_SECTIONS = [
     items: [
       {
         id: "glasswindow",
-        name: "Glass window",
+        name: "Glass Window",
         color: "#9ECFFF",
         hex: 0x9ecfff,
         shape: "cube",
       },
       {
         id: "windowpane",
-        name: "Window pane",
+        name: "Window Pane",
         color: "#B5E1FF",
         hex: 0xb5e1ff,
         shape: "cube",
       },
       {
         id: "hatchwindow",
-        name: "Hatch window",
-        color: "#8DA4BF",
-        hex: 0x8da4bf,
+        name: "Hatch Window",
+        color: "#b49266",
+        hex: 0xb49266,
         shape: "cube",
       },
       {
         id: "sashwindow",
-        name: "Sash window",
+        name: "Sash Window",
         color: "#D9E8F8",
         hex: 0xd9e8f8,
         shape: "cube",
@@ -118,24 +153,24 @@ const BUILDER_SECTIONS = [
     title: "Roof",
     items: [
       {
-        id: "pitchedbrickroof",
-        name: "Pitched Brick Roof",
+        id: "slopedbrickroof",
+        name: "Sloped Brick Roof",
         color: "#F2A067",
         hex: 0xf2a067,
         shape: "roof",
       },
       {
-        id: "pitchedtiledroof",
-        name: "Pitched Tiled Roof",
-        color: "#43aaee",
-        hex: 0x43aaee,
+        id: "slopedtiledroof",
+        name: "Sloped Tiled Roof",
+        color: "#93D4EF",
+        hex: 0x93d4ef,
         shape: "roof",
       },
       {
-        id: "pitchedclayroof",
-        name: "Pitched Clay Roof",
-        color: "#0c0c57",
-        hex: 0x0c0c57,
+        id: "slopedclayroof",
+        name: "Sloped Clay Roof",
+        color: "#324473",
+        hex: 0x324473,
         shape: "roof",
       },
       {
@@ -173,6 +208,13 @@ const BUILDER_SECTIONS = [
         hex: 0xf2a067,
         shape: "roofRounded",
       },
+      {
+        id: "skylight",
+        name: "Skylight",
+        color: "#cffefc",
+        hex: 0xcffefc,
+        shape: "roof",
+      },
     ],
   },
 ];
@@ -187,6 +229,38 @@ const BUILDER_ITEMS = BUILDER_SECTIONS.flatMap((section) =>
 
 const BUILDER_ITEM_MAP = new Map(BUILDER_ITEMS.map((item) => [item.id, item]));
 
+function normalizeColorHex(value, fallback = "#FFFFFF") {
+  const fallbackNormalized =
+    typeof fallback === "string" && /^#([0-9a-fA-F]{6})$/.test(fallback)
+      ? fallback.toUpperCase()
+      : "#FFFFFF";
+
+  if (typeof value !== "string") return fallbackNormalized;
+  const trimmed = value.trim();
+  if (!trimmed) return fallbackNormalized;
+
+  const rawHex = trimmed.startsWith("#") ? trimmed.slice(1) : trimmed;
+  if (/^[0-9a-fA-F]{3}$/.test(rawHex)) {
+    const expanded = rawHex
+      .split("")
+      .map((char) => char + char)
+      .join("");
+    return `#${expanded.toUpperCase()}`;
+  }
+
+  if (/^[0-9a-fA-F]{6}$/.test(rawHex)) {
+    return `#${rawHex.toUpperCase()}`;
+  }
+
+  return fallbackNormalized;
+}
+
+function colorHexToNumber(hexColor, fallback = 0xffffff) {
+  const normalized = normalizeColorHex(hexColor);
+  const parsed = Number.parseInt(normalized.slice(1), 16);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 const DEFAULT_GRID_SIZE = 20;
 const MIN_GRID_SIZE = 8;
 const MAX_GRID_SIZE = 100;
@@ -197,8 +271,12 @@ const CELL = 1;
 const CLEAR_EVENT = "block-builder-clear";
 const ROOF_ROTATIONS = [0, 90, 180, 270];
 const ITEM_NAME_STORAGE_KEY = "block-builder-item-name-map-v1";
+const ITEM_COLOR_STORAGE_KEY = "block-builder-item-color-map-v1";
 const DEFAULT_ITEM_NAME_MAP = Object.fromEntries(
   BUILDER_ITEMS.map((item) => [item.id, item.name]),
+);
+const DEFAULT_ITEM_COLOR_MAP = Object.fromEntries(
+  BUILDER_ITEMS.map((item) => [item.id, normalizeColorHex(item.color)]),
 );
 const SECTION_ID_BY_SHORTCUT_KEY = {
   q: "blocks",
@@ -216,6 +294,9 @@ const SECTION_DEFAULT_ITEM_BY_ID = BUILDER_SECTIONS.reduce((acc, section) => {
   acc[section.id] = section.items[0]?.id ?? null;
   return acc;
 }, {});
+const SECTION_DEFAULT_OPEN_BY_ID = Object.fromEntries(
+  BUILDER_SECTIONS.map((section) => [section.id, section.id === "blocks"]),
+);
 
 function buildEmptyGrid(gridSize, gridHeight) {
   return Array.from({ length: gridHeight }, () =>
@@ -342,6 +423,19 @@ function normalizeLoadedBuilderState(value) {
     });
   }
 
+  const itemColorMap = { ...DEFAULT_ITEM_COLOR_MAP };
+  if (value.itemColorMap && typeof value.itemColorMap === "object") {
+    BUILDER_ITEMS.forEach((item) => {
+      const rawColor = value.itemColorMap[item.id];
+      if (typeof rawColor !== "string") return;
+
+      itemColorMap[item.id] = normalizeColorHex(
+        rawColor,
+        DEFAULT_ITEM_COLOR_MAP[item.id],
+      );
+    });
+  }
+
   const snapshot = normalizeBuilderSnapshot(value.snapshot);
   if (!snapshot) return null;
 
@@ -353,6 +447,7 @@ function normalizeLoadedBuilderState(value) {
     selectedBlockId,
     wallDimensions,
     itemNameMap,
+    itemColorMap,
     snapshot,
   };
 }
@@ -397,6 +492,9 @@ export default function BlockBuilder() {
   const buildSnapshotRef = useRef(null);
   const pendingSnapshotOverrideRef = useRef(null);
   const hasLoadedItemNamesRef = useRef(false);
+  const hasLoadedItemColorsRef = useRef(false);
+  const materialCacheRef = useRef({});
+  const itemColorMapRef = useRef(DEFAULT_ITEM_COLOR_MAP);
 
   const selectedBlockRef = useRef(BUILDER_ITEMS[0]);
   const eraseModeRef = useRef(false);
@@ -410,6 +508,7 @@ export default function BlockBuilder() {
   const [roofRotation, setRoofRotation] = useState(0);
   const [counts, setCounts] = useState(createZeroCounts);
   const [itemNameMap, setItemNameMap] = useState(DEFAULT_ITEM_NAME_MAP);
+  const [itemColorMap, setItemColorMap] = useState(DEFAULT_ITEM_COLOR_MAP);
   const [gridSize, setGridSize] = useState(DEFAULT_GRID_SIZE);
   const [gridHeight, setGridHeight] = useState(DEFAULT_GRID_HEIGHT);
   const [wallDimensions, setWallDimensions] = useState({ width: 1, height: 1 });
@@ -430,6 +529,9 @@ export default function BlockBuilder() {
   const [savedProjectsMessage, setSavedProjectsMessage] = useState("");
   const [savedProjectLoadId, setSavedProjectLoadId] = useState("");
   const [savedProjectDeleteId, setSavedProjectDeleteId] = useState("");
+  const [openSectionMap, setOpenSectionMap] = useState(
+    SECTION_DEFAULT_OPEN_BY_ID,
+  );
   const [sceneVersion, setSceneVersion] = useState(0);
 
   const getMinimumGridSize = () => {
@@ -449,6 +551,13 @@ export default function BlockBuilder() {
     setIsMobileMenuOpen(false);
   };
 
+  const toggleSectionOpen = useCallback((sectionId) => {
+    setOpenSectionMap((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  }, []);
+
   const captureExportSummaryScreenshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || typeof canvas.toDataURL !== "function") {
@@ -467,9 +576,17 @@ export default function BlockBuilder() {
     const block = BUILDER_ITEM_MAP.get(selectedBlockId);
     if (!block) return;
 
-    selectedBlockRef.current = block;
+    const color = normalizeColorHex(
+      itemColorMap[block.id],
+      DEFAULT_ITEM_COLOR_MAP[block.id],
+    );
+    selectedBlockRef.current = {
+      ...block,
+      color,
+      hex: colorHexToNumber(color, block.hex),
+    };
     refreshHoverPreviewRef.current();
-  }, [selectedBlockId]);
+  }, [itemColorMap, selectedBlockId]);
 
   useEffect(() => {
     roofRotationRef.current = roofRotation;
@@ -558,6 +675,40 @@ export default function BlockBuilder() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    try {
+      const saved = window.localStorage.getItem(ITEM_COLOR_STORAGE_KEY);
+      if (!saved) {
+        hasLoadedItemColorsRef.current = true;
+        return;
+      }
+
+      const parsed = JSON.parse(saved);
+      if (!parsed || typeof parsed !== "object") {
+        hasLoadedItemColorsRef.current = true;
+        return;
+      }
+
+      const mergedMap = { ...DEFAULT_ITEM_COLOR_MAP };
+      BUILDER_ITEMS.forEach((item) => {
+        const savedColor = parsed[item.id];
+        if (typeof savedColor !== "string") return;
+
+        mergedMap[item.id] = normalizeColorHex(
+          savedColor,
+          DEFAULT_ITEM_COLOR_MAP[item.id],
+        );
+      });
+      setItemColorMap(mergedMap);
+    } catch (error) {
+      console.error("Failed to load saved item colors", error);
+    } finally {
+      hasLoadedItemColorsRef.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!hasLoadedItemNamesRef.current) return;
 
     window.localStorage.setItem(
@@ -565,6 +716,35 @@ export default function BlockBuilder() {
       JSON.stringify(itemNameMap),
     );
   }, [itemNameMap]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!hasLoadedItemColorsRef.current) return;
+
+    window.localStorage.setItem(
+      ITEM_COLOR_STORAGE_KEY,
+      JSON.stringify(itemColorMap),
+    );
+  }, [itemColorMap]);
+
+  useEffect(() => {
+    itemColorMapRef.current = itemColorMap;
+
+    const materialCache = materialCacheRef.current;
+    BUILDER_ITEMS.forEach((item) => {
+      const material = materialCache[item.id];
+      if (!material) return;
+
+      const nextColor = normalizeColorHex(
+        itemColorMap[item.id],
+        DEFAULT_ITEM_COLOR_MAP[item.id],
+      );
+      material.color.set(colorHexToNumber(nextColor, item.hex));
+      material.needsUpdate = true;
+    });
+
+    refreshHoverPreviewRef.current();
+  }, [itemColorMap]);
 
   useEffect(() => {
     let cancelled = false;
@@ -657,9 +837,30 @@ export default function BlockBuilder() {
     return normalized.length > 0 ? normalized : item.name;
   };
 
+  const getItemColorById = useCallback(
+    (itemId) => {
+      const item = BUILDER_ITEM_MAP.get(itemId);
+      if (!item) return "#FFFFFF";
+      return normalizeColorHex(
+        itemColorMap[itemId],
+        DEFAULT_ITEM_COLOR_MAP[itemId],
+      );
+    },
+    [itemColorMap],
+  );
+
   const updateItemName = (itemId, nextName) => {
     setItemNameMap((prev) => ({ ...prev, [itemId]: nextName }));
   };
+
+  const updateItemColor = useCallback((itemId, nextColor) => {
+    setItemColorMap((prev) => {
+      const fallback = DEFAULT_ITEM_COLOR_MAP[itemId] || "#FFFFFF";
+      const normalized = normalizeColorHex(nextColor, fallback);
+      if (prev[itemId] === normalized) return prev;
+      return { ...prev, [itemId]: normalized };
+    });
+  }, []);
 
   const resetBlankItemName = (item) => {
     setItemNameMap((prev) => {
@@ -832,6 +1033,7 @@ export default function BlockBuilder() {
       setSelectedBlockId(normalized.selectedBlockId);
       setEraseMode(false);
       setItemNameMap(normalized.itemNameMap);
+      setItemColorMap(normalized.itemColorMap);
       setSceneVersion((previous) => previous + 1);
       setSaveMessage(`Loaded "${data.project.name}".`);
       closeMobileMenuIfNeeded();
@@ -931,6 +1133,7 @@ export default function BlockBuilder() {
             wallDimensions,
             counts,
             itemNameMap,
+            itemColorMap,
             snapshot: liveSnapshot,
           },
         }),
@@ -1040,6 +1243,9 @@ export default function BlockBuilder() {
       event.preventDefault();
       setSelectedBlockId(defaultItemId);
       setEraseMode(false);
+      setOpenSectionMap((prev) =>
+        prev[sectionId] ? prev : { ...prev, [sectionId]: true },
+      );
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -1215,41 +1421,17 @@ export default function BlockBuilder() {
     ]);
     const roofValleyIndices = [
       // bottom quad
-      0,
-      1,
-      3,
-      0,
-      3,
-      2,
+      0, 1, 3, 0, 3, 2,
       // left square face
-      0,
-      2,
-      6,
-      0,
-      6,
-      4,
+      0, 2, 6, 0, 6, 4,
       // back square face
-      0,
-      4,
-      5,
-      0,
-      5,
-      1,
+      0, 4, 5, 0, 5, 1,
       // front right triangle face
-      2,
-      6,
-      3,
+      2, 6, 3,
       // right triangle face
-      1,
-      5,
-      3,
+      1, 5, 3,
       // top pitch triangles meeting at valley seam (E -> D)
-      4,
-      6,
-      3,
-      4,
-      3,
-      5,
+      4, 6, 3, 4, 3, 5,
     ];
     roofValleyGeometry.setAttribute(
       "position",
@@ -1319,13 +1501,18 @@ export default function BlockBuilder() {
 
     const matCache = {};
     BUILDER_ITEMS.forEach((item) => {
+      const itemColor = normalizeColorHex(
+        itemColorMapRef.current[item.id],
+        DEFAULT_ITEM_COLOR_MAP[item.id],
+      );
       matCache[item.id] = new THREE.MeshLambertMaterial({
-        color: item.hex,
+        color: colorHexToNumber(itemColor, item.hex),
         // Valley corners expose underside triangles between adjacent roof slopes.
         // Render both sides so those right-triangle undersides don't disappear.
         side: item.shape === "roofValley" ? THREE.DoubleSide : THREE.FrontSide,
       });
     });
+    materialCacheRef.current = matCache;
 
     const toCellKey = (layer, row, col) => `${layer}-${row}-${col}`;
     const normalizeRightAngleRotation = (rotationDegrees) => {
@@ -1973,6 +2160,7 @@ export default function BlockBuilder() {
       ghostPlane.material.dispose();
       hoverMaterial.dispose();
       Object.values(matCache).forEach((material) => material.dispose());
+      materialCacheRef.current = {};
 
       renderer.dispose();
     };
@@ -1996,30 +2184,32 @@ export default function BlockBuilder() {
       })),
   })).filter((section) => section.usedItems.length > 0);
   const getItemSwatchStyle = (item) => {
+    const itemColor = getItemColorById(item.id);
+
     if (item.sectionId !== "roof") {
-      return { background: item.color };
+      return { background: itemColor };
     }
 
     if (item.shape === "roofFlat") {
-      return { background: item.color };
+      return { background: itemColor };
     }
 
     if (item.shape === "roofRounded") {
       return {
-        background: item.color,
+        background: itemColor,
         borderRadius: "9999px 9999px 3px 3px",
       };
     }
 
     if (item.shape === "roofValley") {
       return {
-        background: item.color,
+        background: itemColor,
         clipPath: "polygon(0% 0%, 100% 0%, 50% 100%)",
       };
     }
 
     return {
-      background: item.color,
+      background: itemColor,
       clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
     };
   };
@@ -2042,25 +2232,29 @@ export default function BlockBuilder() {
             Block Builder
           </h1>
         </div>
-        <div className='hidden min-w-0 flex-1 lg:block'>
-          <p className='truncate text-[16px] tracking-[0.1em] text-[#7f8bb0]'>
+        <div className='hidden min-w-0 flex-1 lg:block lg:pl-10 lg:pt-3'>
+          <p className='truncate text-[16px] tracking-[0.1em] text-[#c9cfe2]'>
             TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM | RIGHT CLICK DRAG = PAN
           </p>
-          <p className='mt-1 text-[14px] text-[#7f8bb0]' />
-          SHORTCUTS: Q = BLOCKS | W = DOORS | E = WINDOWS | R = ROOF
-          <p className='mt-1 text-[14px] text-[#7f8bb0]'>
+          <p className='truncate mt-1 text-[16px] tracking-[0.1em] text-[#63c5d7]'>
+            SHORTCUTS: Q = BLOCKS | W = DOORS | E = WINDOWS | R = ROOF
+          </p>
+          <p className='mt-1 text-[16px] tracking-[0.1em] text-[#63c5d7]'>
             A = ERASE | S = LAYER DOWN | D = LAYER UP | F = ROTATE ITEM
           </p>
+          <p className='mt-1 text-[16px] tracking-[0.1em] text-[#fff]'>
+            COLORS CAN BE CUSTOMIZED BY CLICKING COLOR SQUARES
+          </p>
         </div>
-        <nav className='ml-auto flex w-full justify-end gap-3 border-t border-[#49a281] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
+        <nav className='ml-auto flex w-full justify-end gap-3 border-t border-[#ffffff] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
           <Link
-            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#49a281] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
+            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#6cd0ab] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
             href='/pokemon-explorer'
           >
             POKEMON ↗
           </Link>
           <Link
-            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#49a281] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
+            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#6cd0ab] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
             href='/items'
           >
             ITEMS ↗
@@ -2387,47 +2581,96 @@ export default function BlockBuilder() {
             {BUILDER_SECTIONS.map((section) => (
               <Fragment key={section.id}>
                 <div className='mb-2 border-b border-[#2a2a4c] pb-2'>
-                  <h2 className='mb-2 flex items-center gap-1.5 text-[12px] uppercase tracking-[0.2em] text-[#666]'>
-                    <span>{section.title}</span>
-                    {SECTION_SHORTCUT_LABEL_BY_SECTION_ID[section.id] ? (
-                      <span className='rounded border border-[#3a3a5c] bg-white/5 px-1.5 py-0.5 text-[11px] tracking-[0.12em] text-[#8ca2d0]'>
-                        {SECTION_SHORTCUT_LABEL_BY_SECTION_ID[section.id]}
-                      </span>
-                    ) : null}
-                  </h2>
-                  <div className='grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1'>
-                    {section.items.map((item) => {
-                      const active = !eraseMode && selectedBlockId === item.id;
+                  {(() => {
+                    const isSectionOpen = Boolean(openSectionMap[section.id]);
 
-                      return (
+                    return (
+                      <>
                         <button
-                          key={item.id}
-                          className={`flex w-full items-center gap-2 rounded border px-2 py-1 text-left text-[13px] tracking-[0.04em] transition-all lg:text-[13px] ${
-                            active
-                              ? "border-[#a0c4ff] bg-[rgba(160,196,255,.15)] text-white"
-                              : "border-transparent bg-white/5 text-[#ccc] hover:border-[#555] hover:bg-white/10"
-                          }`}
-                          onClick={() => {
-                            setSelectedBlockId(item.id);
-                            setEraseMode(false);
-                            closeMobileMenuIfNeeded();
-                          }}
+                          className='mb-2 flex w-full items-center justify-between rounded border border-[#2a2a4c] bg-white/5 px-2 py-1 text-left transition hover:border-[#3a3a5c] hover:bg-white/10'
+                          onClick={() => toggleSectionOpen(section.id)}
                           type='button'
                         >
-                          <span
-                            className='h-[14px] w-[14px] flex-shrink-0 rounded-[2px] border border-white/15'
-                            style={getItemSwatchStyle(item)}
-                          />
-                          <span className='min-w-0 truncate'>
-                            {getItemDisplayName(item)}
+                          <span className='flex items-center gap-1.5 text-[12px] uppercase tracking-[0.2em] text-[#666]'>
+                            <span>{section.title}</span>
+                            {SECTION_SHORTCUT_LABEL_BY_SECTION_ID[
+                              section.id
+                            ] ? (
+                              <span className='rounded border border-[#3a3a5c] bg-white/5 px-1.5 py-0.5 text-[11px] tracking-[0.12em] text-[#8ca2d0]'>
+                                {
+                                  SECTION_SHORTCUT_LABEL_BY_SECTION_ID[
+                                    section.id
+                                  ]
+                                }
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className='text-[12px] font-bold text-[#8ca2d0]'>
+                            {isSectionOpen ? "−" : "+"}
                           </span>
                         </button>
-                      );
-                    })}
-                  </div>
+
+                        {isSectionOpen ? (
+                          <div className='grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1'>
+                            {section.items.map((item) => {
+                              const active =
+                                !eraseMode && selectedBlockId === item.id;
+                              const itemColor = getItemColorById(item.id);
+
+                              return (
+                                <div
+                                  className='flex w-full items-center gap-2'
+                                  key={item.id}
+                                >
+                                  <label
+                                    className='relative block h-[16px] w-[16px] flex-shrink-0 overflow-hidden rounded-[2px] border border-white/25 bg-white/5'
+                                    title={`Pick color for ${getItemDisplayName(item)}`}
+                                  >
+                                    <span
+                                      className='pointer-events-none absolute inset-0'
+                                      style={getItemSwatchStyle(item)}
+                                    />
+                                    <input
+                                      aria-label={`Pick color for ${getItemDisplayName(item)}`}
+                                      className='absolute inset-0 h-full w-full cursor-pointer opacity-0'
+                                      onChange={(event) =>
+                                        updateItemColor(
+                                          item.id,
+                                          event.target.value,
+                                        )
+                                      }
+                                      type='color'
+                                      value={itemColor}
+                                    />
+                                  </label>
+                                  <button
+                                    className={`flex min-w-0 flex-1 items-center rounded border px-2 py-1 text-left text-[13px] tracking-[0.04em] transition-all lg:text-[13px] ${
+                                      active
+                                        ? "border-[#a0c4ff] bg-[rgba(160,196,255,.15)] text-white"
+                                        : "border-transparent bg-white/5 text-[#ccc] hover:border-[#555] hover:bg-white/10"
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedBlockId(item.id);
+                                      setEraseMode(false);
+                                      closeMobileMenuIfNeeded();
+                                    }}
+                                    type='button'
+                                  >
+                                    <span className='min-w-0 truncate'>
+                                      {getItemDisplayName(item)}
+                                    </span>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+                      </>
+                    );
+                  })()}
                 </div>
 
-                {section.id === "blocks" ? (
+                {section.id === "blocks" && openSectionMap.blocks ? (
                   <div className='mb-2 border-b border-[#2a2a4c] pb-2'>
                     <h2 className='mb-1 text-[12px] uppercase tracking-[0.2em] text-[#666]'>
                       Wall Size
