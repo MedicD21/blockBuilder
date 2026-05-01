@@ -159,10 +159,10 @@ const BUILDER_ITEMS = BUILDER_SECTIONS.flatMap((section) =>
 
 const BUILDER_ITEM_MAP = new Map(BUILDER_ITEMS.map((item) => [item.id, item]));
 
-const DEFAULT_GRID_SIZE = 30;
+const DEFAULT_GRID_SIZE = 20;
 const MIN_GRID_SIZE = 8;
 const MAX_GRID_SIZE = 60;
-const DEFAULT_GRID_HEIGHT = 18;
+const DEFAULT_GRID_HEIGHT = 15;
 const MIN_GRID_HEIGHT = 4;
 const MAX_GRID_HEIGHT = 40;
 const CELL = 1;
@@ -202,6 +202,156 @@ function createZeroCounts() {
   }, {});
 }
 
+function clampInteger(value, min, max, fallback) {
+  const parsed = Number.parseInt(String(value), 10);
+  const safeValue = Number.isNaN(parsed) ? fallback : parsed;
+  return Math.max(min, Math.min(max, safeValue));
+}
+
+function normalizeBuilderSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") return null;
+
+  const groupedPlacements = Array.isArray(snapshot.groupedPlacements)
+    ? snapshot.groupedPlacements
+        .map((groupedPlacement) => {
+          if (!groupedPlacement || typeof groupedPlacement !== "object") {
+            return null;
+          }
+
+          const itemId = String(groupedPlacement.itemId || "");
+          if (!BUILDER_ITEM_MAP.has(itemId)) return null;
+
+          const cells = Array.isArray(groupedPlacement.cells)
+            ? groupedPlacement.cells
+                .map((cell) => {
+                  if (!cell || typeof cell !== "object") return null;
+                  const row = clampInteger(cell.row, 0, 200, 0);
+                  const col = clampInteger(cell.col, 0, 200, 0);
+                  const layer = clampInteger(cell.layer, 1, 200, 1);
+                  return { row, col, layer };
+                })
+                .filter(Boolean)
+            : [];
+
+          if (cells.length === 0) return null;
+
+          const rotationY = Number(groupedPlacement.rotationY);
+          return {
+            itemId,
+            cells,
+            rotationY: Number.isFinite(rotationY) ? rotationY : 0,
+          };
+        })
+        .filter(Boolean)
+    : [];
+
+  const singleCells = Array.isArray(snapshot.singleCells)
+    ? snapshot.singleCells
+        .map((singleCell) => {
+          if (!singleCell || typeof singleCell !== "object") return null;
+
+          const itemId = String(singleCell.itemId || "");
+          if (!BUILDER_ITEM_MAP.has(itemId)) return null;
+
+          const row = clampInteger(singleCell.row, 0, 200, 0);
+          const col = clampInteger(singleCell.col, 0, 200, 0);
+          const layer = clampInteger(singleCell.layer, 1, 200, 1);
+          const rotationY = Number(singleCell.rotationY);
+
+          return {
+            itemId,
+            row,
+            col,
+            layer,
+            rotationY: Number.isFinite(rotationY) ? rotationY : 0,
+          };
+        })
+        .filter(Boolean)
+    : [];
+
+  return { groupedPlacements, singleCells };
+}
+
+function normalizeLoadedBuilderState(value) {
+  if (!value || typeof value !== "object") return null;
+
+  const gridSize = clampInteger(
+    value.gridSize,
+    MIN_GRID_SIZE,
+    MAX_GRID_SIZE,
+    DEFAULT_GRID_SIZE,
+  );
+  const gridHeight = clampInteger(
+    value.gridHeight,
+    MIN_GRID_HEIGHT,
+    MAX_GRID_HEIGHT,
+    DEFAULT_GRID_HEIGHT,
+  );
+
+  const currentLayer = clampInteger(value.currentLayer, 1, gridHeight, 1);
+  const roofRotation = ROOF_ROTATIONS.includes(value.roofRotation)
+    ? value.roofRotation
+    : 0;
+  const selectedBlockId = BUILDER_ITEM_MAP.has(value.selectedBlockId)
+    ? value.selectedBlockId
+    : BUILDER_ITEMS[0].id;
+
+  const wallDimensions = {
+    width: clampInteger(value.wallDimensions?.width, 1, gridSize, 1),
+    height: clampInteger(value.wallDimensions?.height, 1, gridHeight, 1),
+  };
+
+  const itemNameMap = { ...DEFAULT_ITEM_NAME_MAP };
+  if (value.itemNameMap && typeof value.itemNameMap === "object") {
+    BUILDER_ITEMS.forEach((item) => {
+      const rawName = value.itemNameMap[item.id];
+      if (typeof rawName !== "string") return;
+
+      const trimmed = rawName.trim();
+      if (trimmed) {
+        itemNameMap[item.id] = trimmed.slice(0, 80);
+      }
+    });
+  }
+
+  const snapshot = normalizeBuilderSnapshot(value.snapshot);
+  if (!snapshot) return null;
+
+  return {
+    gridSize,
+    gridHeight,
+    currentLayer,
+    roofRotation,
+    selectedBlockId,
+    wallDimensions,
+    itemNameMap,
+    snapshot,
+  };
+}
+
+function normalizeSavedProjectMeta(record) {
+  if (!record || typeof record !== "object") return null;
+  const id = String(record.id || "").trim();
+  const name = String(record.name || "").trim();
+  if (!id || !name) return null;
+
+  const totalBlocks = Number(record.totalBlocks);
+  return {
+    id,
+    name: name.slice(0, 80),
+    totalBlocks: Number.isFinite(totalBlocks) ? Math.max(0, totalBlocks) : 0,
+    createdAt: record.createdAt ?? null,
+    updatedAt: record.updatedAt ?? null,
+  };
+}
+
+function formatSavedDate(value) {
+  if (!value) return "Unknown time";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Unknown time";
+  return parsed.toLocaleString();
+}
+
 export default function BlockBuilder() {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
@@ -217,6 +367,7 @@ export default function BlockBuilder() {
   }));
   const getLiveBuildSnapshotRef = useRef(() => null);
   const buildSnapshotRef = useRef(null);
+  const pendingSnapshotOverrideRef = useRef(null);
   const hasLoadedItemNamesRef = useRef(false);
 
   const selectedBlockRef = useRef(BUILDER_ITEMS[0]);
@@ -237,6 +388,7 @@ export default function BlockBuilder() {
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isExportSummaryOpen, setIsExportSummaryOpen] = useState(false);
+  const [isAccountPanelOpen, setIsAccountPanelOpen] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authUser, setAuthUser] = useState(null);
@@ -244,6 +396,12 @@ export default function BlockBuilder() {
   const [authMessage, setAuthMessage] = useState("");
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [savedProjects, setSavedProjects] = useState([]);
+  const [savedProjectsBusy, setSavedProjectsBusy] = useState(false);
+  const [savedProjectsMessage, setSavedProjectsMessage] = useState("");
+  const [savedProjectLoadId, setSavedProjectLoadId] = useState("");
+  const [savedProjectDeleteId, setSavedProjectDeleteId] = useState("");
+  const [sceneVersion, setSceneVersion] = useState(0);
 
   const getMinimumGridSize = () => {
     const extents = getBuildExtentsRef.current();
@@ -399,6 +557,56 @@ export default function BlockBuilder() {
     };
   }, []);
 
+  const fetchSavedProjects = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!authUser) return;
+
+      if (!silent) {
+        setSavedProjectsBusy(true);
+      }
+      setSavedProjectsMessage("");
+
+      try {
+        const response = await fetch("/api/projects/list", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          setSavedProjectsMessage(
+            data?.error || "Unable to load saved builds right now.",
+          );
+          return;
+        }
+
+        const projects = Array.isArray(data?.projects)
+          ? data.projects.map(normalizeSavedProjectMeta).filter(Boolean)
+          : [];
+        setSavedProjects(projects);
+      } catch (error) {
+        setSavedProjectsMessage("Unable to load saved builds right now.");
+      } finally {
+        if (!silent) {
+          setSavedProjectsBusy(false);
+        }
+      }
+    },
+    [authUser],
+  );
+
+  useEffect(() => {
+    if (!authUser) {
+      setSavedProjects([]);
+      setSavedProjectsMessage("");
+      setSavedProjectLoadId("");
+      setSavedProjectDeleteId("");
+      return;
+    }
+
+    fetchSavedProjects();
+  }, [authUser, fetchSavedProjects]);
+
   const getItemDisplayName = (item) => {
     const savedName = itemNameMap[item.id];
     if (typeof savedName !== "string") return item.name;
@@ -539,6 +747,102 @@ export default function BlockBuilder() {
     }
   };
 
+  const loadSavedProject = async (projectId) => {
+    if (!authUser) {
+      setSaveMessage("Log in to load saved builds.");
+      return;
+    }
+
+    if (!projectId || savedProjectLoadId || saveBusy) return;
+
+    setSavedProjectLoadId(projectId);
+    setSavedProjectsMessage("");
+    setSaveMessage("");
+
+    try {
+      const response = await fetch(
+        `/api/projects/${encodeURIComponent(projectId)}`,
+        {
+          method: "GET",
+          cache: "no-store",
+        },
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.project) {
+        setSaveMessage(data?.error || "Unable to load this saved build.");
+        return;
+      }
+
+      const normalized = normalizeLoadedBuilderState(data.project.builderState);
+      if (!normalized) {
+        setSaveMessage("Saved build data is invalid.");
+        return;
+      }
+
+      buildSnapshotRef.current = normalized.snapshot;
+      pendingSnapshotOverrideRef.current = normalized.snapshot;
+      setGridSize(normalized.gridSize);
+      setGridHeight(normalized.gridHeight);
+      setCurrentLayer(normalized.currentLayer);
+      setRoofRotation(normalized.roofRotation);
+      setWallDimensions(normalized.wallDimensions);
+      setSelectedBlockId(normalized.selectedBlockId);
+      setEraseMode(false);
+      setItemNameMap(normalized.itemNameMap);
+      setSceneVersion((previous) => previous + 1);
+      setSaveMessage(`Loaded "${data.project.name}".`);
+      closeMobileMenuIfNeeded();
+    } catch (error) {
+      setSaveMessage("Unable to load this saved build right now.");
+    } finally {
+      setSavedProjectLoadId("");
+    }
+  };
+
+  const deleteSavedProject = async (project) => {
+    if (!authUser) {
+      setSaveMessage("Log in to manage saved builds.");
+      return;
+    }
+
+    if (!project?.id || savedProjectDeleteId || savedProjectLoadId) return;
+    const confirmed = window.confirm(
+      `Delete saved build "${project.name}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setSavedProjectDeleteId(project.id);
+    setSavedProjectsMessage("");
+    setSaveMessage("");
+
+    try {
+      const response = await fetch(
+        `/api/projects/${encodeURIComponent(project.id)}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.ok) {
+        setSavedProjectsMessage(
+          data?.error || "Unable to delete this saved build.",
+        );
+        return;
+      }
+
+      setSavedProjects((previous) =>
+        previous.filter((savedProject) => savedProject.id !== project.id),
+      );
+      setSavedProjectsMessage(`Deleted "${project.name}".`);
+    } catch (error) {
+      setSavedProjectsMessage("Unable to delete this saved build right now.");
+    } finally {
+      setSavedProjectDeleteId("");
+    }
+  };
+
   const saveCurrentBuild = async () => {
     if (!authUser) {
       setSaveMessage("Log in to save your build.");
@@ -581,6 +885,7 @@ export default function BlockBuilder() {
             gridHeight,
             currentLayer,
             roofRotation,
+            selectedBlockId,
             wallDimensions,
             counts,
             itemNameMap,
@@ -596,6 +901,15 @@ export default function BlockBuilder() {
       }
 
       setSaveMessage(`Saved "${data.project?.name || trimmedName}".`);
+      const normalizedProject = normalizeSavedProjectMeta(data.project);
+      if (normalizedProject) {
+        setSavedProjects((previous) => [
+          normalizedProject,
+          ...previous.filter((project) => project.id !== normalizedProject.id),
+        ]);
+      } else {
+        fetchSavedProjects({ silent: true });
+      }
       closeMobileMenuIfNeeded();
     } catch (error) {
       setSaveMessage("Unable to save build right now.");
@@ -1376,7 +1690,13 @@ export default function BlockBuilder() {
       resizeObserver.disconnect();
       controls.dispose();
 
-      buildSnapshotRef.current = buildSnapshot();
+      const fallbackSnapshot = buildSnapshot();
+      if (pendingSnapshotOverrideRef.current) {
+        buildSnapshotRef.current = pendingSnapshotOverrideRef.current;
+        pendingSnapshotOverrideRef.current = null;
+      } else {
+        buildSnapshotRef.current = fallbackSnapshot;
+      }
       getLiveBuildSnapshotRef.current = () => null;
       getBuildExtentsRef.current = () => ({
         hasBlocks: false,
@@ -1406,7 +1726,7 @@ export default function BlockBuilder() {
 
       renderer.dispose();
     };
-  }, [gridHeight, gridSize]);
+  }, [gridHeight, gridSize, sceneVersion]);
 
   const total = useMemo(
     () => Object.values(counts).reduce((sum, count) => sum + count, 0),
@@ -1518,6 +1838,110 @@ export default function BlockBuilder() {
               </button>
             </div>
           ) : null}
+
+          <div className='border-b border-[#3a3a5c] px-2 py-2'>
+            <button
+              className='flex w-full items-center justify-between gap-2 rounded border border-[#3a3a5c] bg-white/5 px-2 py-2 text-left transition hover:bg-white/10'
+              onClick={() => setIsAccountPanelOpen((prev) => !prev)}
+              type='button'
+            >
+              <div className='min-w-0'>
+                <h2 className='text-[12px] uppercase tracking-[0.2em] text-[#a0c4ff]'>
+                  Account + Save
+                </h2>
+                <p className='truncate text-[11px] tracking-[0.08em] text-[#7f8bb0]'>
+                  {authUser ? `Logged in: ${authUser.email}` : "Log in to save builds"}
+                </p>
+              </div>
+              <span className='rounded border border-[#3a3a5c] px-1.5 py-0.5 text-[10px] tracking-[0.1em] text-[#9fb0d6]'>
+                {isAccountPanelOpen ? "HIDE" : "OPEN"}
+              </span>
+            </button>
+
+            {isAccountPanelOpen ? (
+              <div className='mt-2 space-y-2'>
+                {authUser ? (
+                  <div className='space-y-2'>
+                    <p className='text-[13px] tracking-[0.08em] text-[#9fb0d6]'>
+                      Logged in as{" "}
+                      <span className='font-semibold text-[#d9e4ff]'>
+                        {authUser.email}
+                      </span>
+                    </p>
+                    <button
+                      className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[12px] tracking-[0.1em] text-[#c5d4ff] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
+                      disabled={authBusy}
+                      onClick={handleLogout}
+                      type='button'
+                    >
+                      {authBusy ? "LOGGING OUT..." : "LOG OUT"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className='space-y-2'>
+                    <input
+                      autoComplete='email'
+                      className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] text-[#dce7ff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
+                      onChange={(event) => setAuthEmail(event.target.value)}
+                      placeholder='Email'
+                      type='email'
+                      value={authEmail}
+                    />
+                    <input
+                      autoComplete='current-password'
+                      className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] text-[#dce7ff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
+                      onChange={(event) => setAuthPassword(event.target.value)}
+                      placeholder='Password'
+                      type='password'
+                      value={authPassword}
+                    />
+                    <div className='grid grid-cols-2 gap-1'>
+                      <button
+                        className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[12px] tracking-[0.1em] text-[#c5d4ff] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
+                        disabled={authBusy}
+                        onClick={() => runAuthAction("login")}
+                        type='button'
+                      >
+                        {authBusy ? "WAIT..." : "LOG IN"}
+                      </button>
+                      <button
+                        className='rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[12px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60'
+                        disabled={authBusy}
+                        onClick={() => runAuthAction("register")}
+                        type='button'
+                      >
+                        {authBusy ? "WAIT..." : "SIGN UP"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  className='w-full rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[13px] tracking-[0.1em] text-[#a0c4ff] transition-all hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60 lg:text-[12px]'
+                  disabled={!authUser || saveBusy}
+                  onClick={saveCurrentBuild}
+                  type='button'
+                >
+                  {saveBusy
+                    ? "SAVING..."
+                    : authUser
+                      ? "SAVE BUILD"
+                      : "LOG IN TO SAVE"}
+                </button>
+
+                {authMessage ? (
+                  <p className='text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
+                    {authMessage}
+                  </p>
+                ) : null}
+                {saveMessage ? (
+                  <p className='text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
+                    {saveMessage}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
 
           <div
             className={`border-b border-[#3a3a5c] px-2 pb-1 pt-2 lg:max-h-none ${
@@ -1774,74 +2198,6 @@ export default function BlockBuilder() {
             </div>
           </div>
 
-          <div className='border-b border-[#3a3a5c] px-2 py-2'>
-            <h2 className='mb-2 text-[12px] uppercase tracking-[0.2em] text-[#666]'>
-              Account
-            </h2>
-
-            {authUser ? (
-              <div className='space-y-2'>
-                <p className='text-[13px] tracking-[0.08em] text-[#9fb0d6]'>
-                  Logged in as{" "}
-                  <span className='font-semibold text-[#d9e4ff]'>
-                    {authUser.email}
-                  </span>
-                </p>
-                <button
-                  className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[12px] tracking-[0.1em] text-[#c5d4ff] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
-                  disabled={authBusy}
-                  onClick={handleLogout}
-                  type='button'
-                >
-                  {authBusy ? "LOGGING OUT..." : "LOG OUT"}
-                </button>
-              </div>
-            ) : (
-              <div className='space-y-2'>
-                <input
-                  autoComplete='email'
-                  className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] text-[#dce7ff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
-                  onChange={(event) => setAuthEmail(event.target.value)}
-                  placeholder='Email'
-                  type='email'
-                  value={authEmail}
-                />
-                <input
-                  autoComplete='current-password'
-                  className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] text-[#dce7ff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
-                  onChange={(event) => setAuthPassword(event.target.value)}
-                  placeholder='Password'
-                  type='password'
-                  value={authPassword}
-                />
-                <div className='grid grid-cols-2 gap-1'>
-                  <button
-                    className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[12px] tracking-[0.1em] text-[#c5d4ff] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
-                    disabled={authBusy}
-                    onClick={() => runAuthAction("login")}
-                    type='button'
-                  >
-                    {authBusy ? "WAIT..." : "LOG IN"}
-                  </button>
-                  <button
-                    className='rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[12px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60'
-                    disabled={authBusy}
-                    onClick={() => runAuthAction("register")}
-                    type='button'
-                  >
-                    {authBusy ? "WAIT..." : "SIGN UP"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {authMessage ? (
-              <p className='mt-2 text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
-                {authMessage}
-              </p>
-            ) : null}
-          </div>
-
           <div
             className={`px-2 pb-1 pt-2 lg:flex-1 lg:max-h-none ${
               showMobileOverlayMenu
@@ -1911,19 +2267,92 @@ export default function BlockBuilder() {
             </div>
           </div>
 
-          <button
-            className='mx-2 mt-2 rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[13px] tracking-[0.1em] text-[#a0c4ff] transition-all hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60 lg:text-[12px]'
-            disabled={!authUser || saveBusy}
-            onClick={saveCurrentBuild}
-            type='button'
-          >
-            {saveBusy ? "SAVING..." : authUser ? "SAVE BUILD" : "LOG IN TO SAVE"}
-          </button>
-          {saveMessage ? (
-            <p className='mx-2 mt-1 text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
-              {saveMessage}
-            </p>
-          ) : null}
+          <div className='mx-2 mt-2 rounded border border-[#3a3a5c] bg-[rgba(255,255,255,0.02)] p-2'>
+            <div className='mb-2 flex items-center justify-between gap-2'>
+              <h2 className='text-[12px] uppercase tracking-[0.14em] text-[#7f8bb0]'>
+                My Saved Builds
+              </h2>
+              <button
+                className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.1em] text-[#9fb0d6] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
+                disabled={
+                  !authUser ||
+                  savedProjectsBusy ||
+                  Boolean(savedProjectLoadId) ||
+                  Boolean(savedProjectDeleteId)
+                }
+                onClick={() => fetchSavedProjects()}
+                type='button'
+              >
+                {savedProjectsBusy ? "LOADING..." : "REFRESH"}
+              </button>
+            </div>
+
+            {!authUser ? (
+              <p className='text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
+                Log in to view your saved builds.
+              </p>
+            ) : savedProjects.length === 0 ? (
+              <p className='text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
+                No saved builds yet.
+              </p>
+            ) : (
+              <div className='max-h-[20dvh] space-y-2 overflow-y-auto pr-1'>
+                {savedProjects.map((project) => (
+                  <div
+                    className='rounded border border-[#2f3555] bg-white/5 p-2'
+                    key={project.id}
+                  >
+                    <p
+                      className='truncate text-[13px] font-semibold tracking-[0.06em] text-[#d9e4ff]'
+                      title={project.name}
+                    >
+                      {project.name}
+                    </p>
+                    <p className='mt-1 text-[11px] tracking-[0.08em] text-[#7f8bb0]'>
+                      {project.totalBlocks} blocks •{" "}
+                      {formatSavedDate(project.updatedAt)}
+                    </p>
+                    <div className='mt-2 grid grid-cols-2 gap-1'>
+                      <button
+                        className='rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60'
+                        disabled={
+                          saveBusy ||
+                          Boolean(savedProjectDeleteId) ||
+                          Boolean(savedProjectLoadId)
+                        }
+                        onClick={() => loadSavedProject(project.id)}
+                        type='button'
+                      >
+                        {savedProjectLoadId === project.id
+                          ? "LOADING..."
+                          : "LOAD"}
+                      </button>
+                      <button
+                        className='rounded border border-[#5a2a2a] bg-[rgba(255,80,80,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#ff9090] transition hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white disabled:cursor-not-allowed disabled:opacity-60'
+                        disabled={
+                          saveBusy ||
+                          Boolean(savedProjectLoadId) ||
+                          Boolean(savedProjectDeleteId)
+                        }
+                        onClick={() => deleteSavedProject(project)}
+                        type='button'
+                      >
+                        {savedProjectDeleteId === project.id
+                          ? "DELETING..."
+                          : "DELETE"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {savedProjectsMessage ? (
+              <p className='mt-2 text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
+                {savedProjectsMessage}
+              </p>
+            ) : null}
+          </div>
 
           <button
             className='mx-2 mt-2 rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[13px] tracking-[0.1em] text-[#a0c4ff] transition-all hover:bg-[rgba(160,196,255,.16)] lg:text-[12px]'

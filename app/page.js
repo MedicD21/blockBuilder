@@ -137,11 +137,11 @@ export default function HomePage() {
             >
               <Image
                 alt='Pokopia logo'
-                className='mx-auto h-300 w-300 rounded-2xl border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-2 shadow-[0_20px_65px_rgba(0,0,0,.42)] sm:h-300 sm:w-300 lg:mx-0 lg:h-300 lg:w-300'
-                height={620}
+                className='mx-auto h-30 w-30 rounded-2xl border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-2 shadow-[0_20px_65px_rgba(0,0,0,.42)] sm:h-30 sm:w-30 lg:mx-0 lg:h-150 lg:w-150'
+                height={420}
                 priority
                 src='/images/logo/pokopiaplannerdb.png'
-                width={620}
+                width={420}
               />
             </Link>
 
@@ -154,10 +154,11 @@ export default function HomePage() {
               section.
             </p>
 
-            <div className='mt-6 hidden flex-wrap gap-2 lg:flex'>
+            <div className='mt-6 hidden flex-wrap gap-2 sm:flex lg:flex'>
+              <div className='flex' />
               {HOME_CARDS.map((card) => (
                 <Link
-                  className='rounded-full border items-center border-[#47527a] bg-[rgba(23,28,52,.9)] px-3 py-1.5 text-sm font-semibold uppercase tracking-[0.08em] text-[#d8e4ff] transition hover:border-[#a0c4ff] hover:bg-[rgba(33,41,74,.95)]'
+                  className='rounded-full border justify-between border-[#47527a] bg-[rgba(23,28,52,.9)] px-3 py-1.5 text-sm font-semibold uppercase tracking-[0.08em] text-[#d8e4ff] transition hover:border-[#a0c4ff] hover:bg-[rgba(33,41,74,.95)]'
                   href={card.href}
                   key={card.href}
                 >

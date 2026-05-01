@@ -29,11 +29,22 @@ DATABASE_URL=postgres://...
 AUTH_SECRET=replace-with-a-long-random-string
 ```
 
-For Vercel deployment:
+## Vercel CLI Setup
 
-1. Add a **Neon Postgres** integration from the Vercel marketplace.
-2. Confirm `DATABASE_URL` is set in your Vercel project env vars.
-3. Add `AUTH_SECRET` (long random string) in Vercel env vars.
+```bash
+vercel link --yes
+vercel install neon --plan free_v3 -m region=iad1 --name block-builder-db
+vercel env add AUTH_SECRET production --value "<long-random-secret>" --yes
+vercel env add AUTH_SECRET development --value "<long-random-secret>" --yes
+vercel env pull .env.local
+vercel --prod
+```
+
+For preview envs, add `AUTH_SECRET` for your preview branch:
+
+```bash
+vercel env add AUTH_SECRET preview <your-branch> --value "<long-random-secret>" --yes
+```
 
 ## Scripts
 
@@ -53,6 +64,7 @@ For Vercel deployment:
 
 - Login/signup is available on the **Builder** screen only.
 - `SAVE BUILD` stores the current build state in Postgres table `saved_projects`.
+- **My Saved Builds** in the Builder sidebar lets users refresh, load, and delete their own saved builds.
 - Other app screens remain reference/database browsing only.
 
 ## Notes

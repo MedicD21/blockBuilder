@@ -29,15 +29,15 @@ export default function PokemonExplorerPage() {
           </h1>
         </div>
         <div className='flex-1' />
-        <nav className='flex w-full justify-end gap-3 border-t border-[#3a3a5c] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
+        <nav className='flex w-full justify-end gap-3 border-t border-[#49a281] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
           <Link
-            className='whitespace-nowrap text-[14px] tracking-[0.1em] text-[#666] transition-colors hover:text-[#a0c4ff] sm:text-[15px]'
+            className='whitespace-nowrap border-1 border-rounded-xl border-[#49a281] text-[18px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[24px]'
             href='/builder'
           >
             BUILDER ↖
           </Link>
           <Link
-            className='whitespace-nowrap text-[14px] tracking-[0.1em] text-[#666] transition-colors hover:text-[#a0c4ff] sm:text-[15px]'
+            className='whitespace-nowrap border-1 border-rounded-xl border-[#49a281] text-[18px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[24px]'
             href='/items'
           >
             ITEMS ↗
