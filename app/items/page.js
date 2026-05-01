@@ -22,14 +22,14 @@ export default function ItemsPage() {
           <Link aria-label='Go to home screen' href='/'>
             <Image
               alt='Pokopia logo'
-              className='h-14 w-14 rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-0.5 sm:h-16 sm:w-16'
-              height={64}
+              className='h-[96px] w-[96px] rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-0.5 sm:h-[120px] sm:w-[120px]'
+              height={120}
               priority
               src='/images/logo/pokopiaplannerdb.png'
-              width={64}
+              width={120}
             />
           </Link>
-          <h1 className='whitespace-nowrap text-[20px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff] sm:text-[23px] lg:text-[25px]'>
+          <h1 className='whitespace-nowrap text-[22px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff] sm:text-[32px]'>
             Pokopia Items
           </h1>
         </div>
@@ -37,15 +37,15 @@ export default function ItemsPage() {
           CARD VIEW | COLLAPSIBLE SECTIONS | FAVORITE TYPE FILTERS
         </p>
         <div className='flex-1' />
-        <nav className='flex w-full justify-end gap-3 border-t border-[#3a3a5c] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
+        <nav className='flex w-full justify-end gap-3 border-t border-[#49a281] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
           <Link
-            className='whitespace-nowrap text-[14px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[15px] lg:text-[18px]'
+            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#49a281] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
             href='/pokemon-explorer'
           >
             POKEMON ↗
           </Link>
           <Link
-            className='whitespace-nowrap text-[14px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[15px] lg:text-[18px]'
+            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#49a281] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
             href='/builder'
           >
             BUILDER ↖

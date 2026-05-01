@@ -1756,30 +1756,30 @@ export default function BlockBuilder() {
           <Link aria-label='Go to home screen' href='/'>
             <Image
               alt='Pokopia logo'
-              className='h-14 w-14 rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-0.5 sm:h-16 sm:w-16'
-              height={64}
+              className='h-[96px] w-[96px] rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-0.5 sm:h-[120px] sm:w-[120px]'
+              height={120}
               priority
               src='/images/logo/pokopiaplannerdb.png'
-              width={64}
+              width={120}
             />
           </Link>
-          <h1 className='whitespace-nowrap text-[20px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff] sm:text-[24px] lg:text-[26px]'>
+          <h1 className='whitespace-nowrap text-[22px] font-bold uppercase tracking-[0.21em] text-[#a0c4ff] sm:text-[32px]'>
             Block Builder
           </h1>
         </div>
-        <p className='hidden whitespace-nowrap text-[12px] tracking-[0.1em] text-[#666] lg:block'>
-          TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM
+        <p className='hidden whitespace-nowrap text-[16px] tracking-[0.1em] text-[#666] lg:block'>
+          TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM | RIGHT CLICK DRAG = PAN
         </p>
         <div className='flex-1' />
-        <nav className='flex w-full justify-end gap-3 border-t border-[#3a3a5c] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
+        <nav className='flex w-full justify-end gap-3 border-t border-[#49a281] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
           <Link
-            className='whitespace-nowrap text-[14px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[15px] lg:text-[18px]'
+            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#49a281] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
             href='/pokemon-explorer'
           >
             POKEMON ↗
           </Link>
           <Link
-            className='whitespace-nowrap text-[14px] tracking-[0.1em] text-[#f2a067] transition-colors hover:text-[#a0c4ff] sm:text-[15px] lg:text-[18px]'
+            className='inline-flex items-center whitespace-nowrap rounded-full border border-[#49a281] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
             href='/items'
           >
             ITEMS ↗
@@ -1850,7 +1850,9 @@ export default function BlockBuilder() {
                   Account + Save
                 </h2>
                 <p className='truncate text-[11px] tracking-[0.08em] text-[#7f8bb0]'>
-                  {authUser ? `Logged in: ${authUser.email}` : "Log in to save builds"}
+                  {authUser
+                    ? `Logged in: ${authUser.email}`
+                    : "Log in to save builds"}
                 </p>
               </div>
               <span className='rounded border border-[#3a3a5c] px-1.5 py-0.5 text-[10px] tracking-[0.1em] text-[#9fb0d6]'>
