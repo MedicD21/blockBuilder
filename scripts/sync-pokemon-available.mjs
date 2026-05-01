@@ -5,8 +5,10 @@ import process from "node:process";
 const ROOT = process.cwd();
 const DATASET_PATH = path.join(ROOT, "data", "pokemon-data.json");
 const REPORT_PATH = path.join(ROOT, "data", "serebii-pokemon-sync-report.json");
+const HABITAT_DATA_PATH = path.join(ROOT, "data", "habitats-data.json");
 const AVAILABLE_SOURCE_URL = "https://serebii.net/pokemonpokopia/availablepokemon.shtml";
 const EVENT_SOURCE_URL = "https://serebii.net/pokemonpokopia/eventpokedex.shtml";
+const LITTER_SOURCE_URL = "https://serebii.net/pokemonpokopia/litter.shtml";
 const SEREBII_BASE = "https://serebii.net";
 const UNIQUE_FORM_NAMES = [
   "Professor Tangrowth",
@@ -82,6 +84,14 @@ function toSpecialtyId(hrefSlug, name) {
   return `specialty_${normalized.replace(/[^a-z0-9_]+/gi, "_")}`;
 }
 
+function toHabitatPathKey(detailPath = "") {
+  return String(detailPath || "")
+    .split("/")
+    .pop()
+    ?.replace(/\.shtml$/i, "")
+    .toLowerCase();
+}
+
 function parseSpecialties(rowHtml) {
   const specialties = [];
   const seen = new Set();
@@ -126,16 +136,16 @@ function parsePokemonRows(html, { isEventPokemon }) {
       /<img\s+src=["'](\/pokemonpokopia\/pokemon\/small\/[^"']+)"[^>]*class=["']stdsprite["']/i,
     );
     const nameMatch = rowHtml.match(
-      /<td\s+class=["']cen["']>\s*<a\s+href=["'](\/pokemonpokopia\/pokedex\/[^"']+)["'][^>]*><u>([^<]+)<\/u><\/a>\s*<\/td>/i,
+      /<td\s+class=["']cen["']>\s*<a\s+href=(["'])(\/pokemonpokopia\/pokedex\/[^"<>]+\.shtml)\1[^>]*><u>([^<]+)<\/u><\/a>\s*<\/td>/i,
     );
 
     if (!spriteMatch || !nameMatch) continue;
 
     const number = numberMatch[1].padStart(3, "0");
-    const sourceName = cleanText(nameMatch[2]);
+    const sourceName = cleanText(nameMatch[3]);
     const canonicalName = SPECIAL_NAME_RENAMES.get(sourceName) ?? sourceName;
     const spriteUrl = toAbsoluteUrl(decodeHtmlEntities(spriteMatch[1]));
-    const detailPath = decodeHtmlEntities(nameMatch[1]);
+    const detailPath = decodeHtmlEntities(nameMatch[2]);
     const specialties = parseSpecialties(rowHtml);
 
     rows.push({
@@ -187,6 +197,100 @@ function mergeSpecialtyDetails(existingDetails, scrapedDetails) {
       iconUrl: scraped.iconUrl,
     };
   });
+}
+
+function parseLitterRewardsMap(litterHtml) {
+  const map = new Map();
+  const entryRegex =
+    /<td class="cen">#\d+<\/td>\s*<td class="cen"><a href="\/pokemonpokopia\/pokedex\/[^"]+"><img[\s\S]*?<\/td>\s*<td class="cen"><a href="\/pokemonpokopia\/pokedex\/[^"]+"><u>([^<]+)<\/u><\/a><\/td>[\s\S]*?<td class="cen">\s*<img src="([^"]+)"[^>]*alt="([^"]*)"[^>]*>\s*<br \/>\s*([^<]+)\s*<\/td>/gi;
+
+  for (const match of litterHtml.matchAll(entryRegex)) {
+    const sourceName = cleanText(match[1] || "");
+    const canonicalName = SPECIAL_NAME_RENAMES.get(sourceName) ?? sourceName;
+    const key = normalizeName(canonicalName);
+    if (!key) continue;
+
+    const itemName = cleanText(match[4] || match[3] || "");
+    if (!itemName) continue;
+
+    let iconSrc = decodeHtmlEntities(match[2] || "");
+    if (iconSrc && !/^https?:\/\//i.test(iconSrc)) {
+      const normalizedPath = iconSrc.replace(/^\/+/, "");
+      iconSrc = `${SEREBII_BASE}/pokemonpokopia/${normalizedPath}`;
+    }
+
+    map.set(key, {
+      itemName,
+      itemIconUrl: iconSrc,
+    });
+  }
+
+  return map;
+}
+
+function buildHabitatIdsByPokemonKey(habitatDataset) {
+  const map = new Map();
+
+  for (const habitat of habitatDataset?.habitats || []) {
+    const pathKey = toHabitatPathKey(habitat.detailPath);
+    if (!pathKey) continue;
+
+    for (const spawn of habitat.spawnPokemon || []) {
+      const sourceName = cleanText(spawn?.name || "");
+      if (!sourceName) continue;
+
+      const canonicalName = SPECIAL_NAME_RENAMES.get(sourceName) ?? sourceName;
+      const normalized = normalizeName(canonicalName);
+      if (!normalized) continue;
+
+      if (!map.has(normalized)) map.set(normalized, new Set());
+      map.get(normalized).add(pathKey);
+    }
+  }
+
+  return map;
+}
+
+function applyLitterRewardsToPokemon(pokemon, litterRewardsMap) {
+  if (!pokemon?.meta) return;
+  if (!Array.isArray(pokemon.meta.specialtyDetails)) return;
+
+  const candidateKeys = getCandidateNameKeys(pokemon.name);
+  let litterReward = null;
+  for (const key of candidateKeys) {
+    if (!litterRewardsMap.has(key)) continue;
+    litterReward = litterRewardsMap.get(key);
+    break;
+  }
+  if (!litterReward) return;
+
+  pokemon.meta.specialtyDetails = pokemon.meta.specialtyDetails.map((detail) => {
+    if (!detail || normalizeName(detail.name) !== "litter") return detail;
+    return {
+      ...detail,
+      litterItemName: litterReward.itemName,
+      litterItemIconUrl: litterReward.itemIconUrl,
+    };
+  });
+}
+
+function applyHabitatIdsToPokemon(pokemon, habitatIdsByPokemonKey) {
+  const existingIds = Array.isArray(pokemon.meta?.habitatIds)
+    ? pokemon.meta.habitatIds
+    : [];
+  const merged = new Set(existingIds.map((value) => String(value || "").trim()).filter(Boolean));
+
+  const candidateKeys = getCandidateNameKeys(pokemon.name);
+  for (const key of candidateKeys) {
+    const ids = habitatIdsByPokemonKey.get(key);
+    if (!ids) continue;
+    for (const habitatId of ids) merged.add(habitatId);
+  }
+
+  pokemon.meta = {
+    ...(pokemon.meta || {}),
+    habitatIds: Array.from(merged).sort((a, b) => a.localeCompare(b)),
+  };
 }
 
 function parseTypeNames(detailPageHtml) {
@@ -407,15 +511,20 @@ async function fetchPokemonDetail(detailPath, detailCache) {
 }
 
 async function main() {
-  const [datasetRaw, availableHtml, eventHtml] = await Promise.all([
+  const [datasetRaw, habitatDatasetRaw, availableHtml, eventHtml, litterHtml] = await Promise.all([
     fs.readFile(DATASET_PATH, "utf8"),
+    fs.readFile(HABITAT_DATA_PATH, "utf8"),
     fetchHtml(AVAILABLE_SOURCE_URL),
     fetchHtml(EVENT_SOURCE_URL),
+    fetchHtml(LITTER_SOURCE_URL),
   ]);
 
   const dataset = JSON.parse(datasetRaw);
+  const habitatDataset = JSON.parse(habitatDatasetRaw);
   const availableRows = parsePokemonRows(availableHtml, { isEventPokemon: false });
   const eventRows = parsePokemonRows(eventHtml, { isEventPokemon: true });
+  const litterRewardsMap = parseLitterRewardsMap(litterHtml);
+  const habitatIdsByPokemonKey = buildHabitatIdsByPokemonKey(habitatDataset);
 
   if (availableRows.length === 0) {
     throw new Error("No standard pokemon rows were parsed from availablepokemon.shtml.");
@@ -578,6 +687,12 @@ async function main() {
 
   dataset.count = dataset.pokemon.length;
   dataset.generatedAt = new Date().toISOString();
+
+  for (const pokemon of dataset.pokemon) {
+    applyLitterRewardsToPokemon(pokemon, litterRewardsMap);
+    applyHabitatIdsToPokemon(pokemon, habitatIdsByPokemonKey);
+  }
+
   dataset.facets = {
     ...(dataset.facets || {}),
     specialties: recomputeSpecialtiesFacet(dataset.pokemon),
@@ -589,9 +704,10 @@ async function main() {
 
   const report = {
     generatedAt: new Date().toISOString(),
-    sourceUrls: {
+      sourceUrls: {
       available: AVAILABLE_SOURCE_URL,
       event: EVENT_SOURCE_URL,
+      litter: LITTER_SOURCE_URL,
     },
     totals: {
       availableRows: availableRows.length,
@@ -601,6 +717,8 @@ async function main() {
       updatedCount,
       renamedCount,
       appendedCount,
+      litterRewardsMapped: litterRewardsMap.size,
+      habitatNameMappings: habitatIdsByPokemonKey.size,
     },
     appendedStandardRows,
     appendedEventRows,

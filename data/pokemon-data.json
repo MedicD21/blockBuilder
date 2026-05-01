@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-01T21:46:18.305Z",
+  "generatedAt": "2026-05-01T22:38:49.844Z",
   "sourceFile": "../reference/Pokopia.csv",
   "enrichment": {
     "enabled": true,
@@ -152,8 +152,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/001.png",
         "habitatIds": [
-          "tallgrass",
-          "benchwithgreenery"
+          "benchwithgreenery",
+          "tallgrass"
         ],
         "areaDetails": [
           {
@@ -250,8 +250,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/002.png",
         "habitatIds": [
-          "fieldofflowers",
-          "benchwithgreenery"
+          "benchwithgreenery",
+          "fieldofflowers"
         ],
         "areaDetails": [
           {
@@ -412,7 +412,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Leaf",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/leaf.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/leaf.png"
           }
         ],
         "isEventPokemon": false,
@@ -452,7 +452,9 @@
           "Ghost"
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/004.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "tallgrass"
+        ],
         "areaDetails": [
           {
             "name": "Bleak Beach",
@@ -644,8 +646,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/006.png",
         "habitatIds": [
-          "tallgrass",
-          "berry-feastcampsite"
+          "berry-feastcampsite",
+          "tallgrass"
         ],
         "areaDetails": [
           {
@@ -747,8 +749,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/007.png",
         "habitatIds": [
-          "tallgrass",
-          "hydratedtallgrass"
+          "hydratedtallgrass",
+          "tallgrass"
         ],
         "areaDetails": [
           {
@@ -940,8 +942,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/009.png",
         "habitatIds": [
-          "hydratedtallgrass",
-          "floatingintheshade"
+          "floatingintheshade",
+          "hydratedtallgrass"
         ],
         "areaDetails": [
           {
@@ -1608,7 +1610,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Leaf",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/leaf.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/leaf.png"
           }
         ],
         "isEventPokemon": false,
@@ -1949,8 +1951,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/048.png",
         "habitatIds": [
-          "illuminatedtallgrass",
-          "illuminatedbench"
+          "illuminatedbench",
+          "illuminatedtallgrass"
         ],
         "areaDetails": [
           {
@@ -2047,8 +2049,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/049.png",
         "habitatIds": [
-          "illuminatedtallgrass",
-          "illuminatedbench"
+          "illuminatedbench",
+          "illuminatedtallgrass"
         ],
         "areaDetails": [
           {
@@ -2207,7 +2209,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Vine Rope",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/vinerope.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/vinerope.png"
           }
         ],
         "isEventPokemon": false,
@@ -2314,7 +2316,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Vine Rope",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/vinerope.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/vinerope.png"
           }
         ],
         "isEventPokemon": false,
@@ -2566,8 +2568,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/080.png",
         "habitatIds": [
-          "seasidetallgrass",
-          "bedwithaplush"
+          "bedwithaplush",
+          "seasidetallgrass"
         ],
         "areaDetails": [
           {
@@ -2672,9 +2674,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/199.png",
         "habitatIds": [
-          "seasidetallgrass",
           "bedwithaplush",
-          "fishingpond"
+          "fishingpond",
+          "seasidetallgrass"
         ],
         "areaDetails": [
           {
@@ -2873,8 +2875,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/082.png",
         "habitatIds": [
-          "trashcancentral",
-          "minigamecorner"
+          "minigamecorner",
+          "trashcancentral"
         ],
         "areaDetails": [
           {
@@ -2972,8 +2974,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/462.png",
         "habitatIds": [
-          "trashcancentral",
-          "minigamecorner"
+          "minigamecorner",
+          "trashcancentral"
         ],
         "areaDetails": [
           {
@@ -4045,7 +4047,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Vine Rope",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/vinerope.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/vinerope.png"
           }
         ],
         "isEventPokemon": false,
@@ -4086,8 +4088,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/465-professortangrowth.png",
         "habitatIds": [
-          "professorstreasuretrove",
-          "benchwithgreenery"
+          "benchwithgreenery",
+          "professorstreasuretrove"
         ],
         "areaDetails": [
           {
@@ -4176,8 +4178,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/465.png",
         "habitatIds": [
-          "professorstreasuretrove",
-          "benchwithgreenery"
+          "benchwithgreenery",
+          "professorstreasuretrove"
         ],
         "areaDetails": [
           {
@@ -4222,7 +4224,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Vine Rope",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/vinerope.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/vinerope.png"
           }
         ],
         "isEventPokemon": false,
@@ -4760,8 +4762,8 @@
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/163.png",
         "habitatIds": [
           "elevatedtallgrass",
-          "prettyflowerbed",
-          "gentlylitbed"
+          "gentlylitbed",
+          "prettyflowerbed"
         ],
         "areaDetails": [
           {
@@ -5588,7 +5590,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Sturdy Stick",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/sturdystick.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/sturdystick.png"
           }
         ],
         "isEventPokemon": false,
@@ -5686,7 +5688,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Honey",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/honey.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/honey.png"
           }
         ],
         "isEventPokemon": false,
@@ -6219,9 +6221,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/425.png",
         "habitatIds": [
-          "ridingwarmupdrafts",
           "bedwithaplush",
-          "plushcentral"
+          "plushcentral",
+          "ridingwarmupdrafts"
         ],
         "areaDetails": [
           {
@@ -6913,8 +6915,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/607.png",
         "habitatIds": [
-          "graveoffering",
-          "creepygraveoffering"
+          "creepygraveoffering",
+          "graveoffering"
         ],
         "areaDetails": [
           {
@@ -7011,8 +7013,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/608.png",
         "habitatIds": [
-          "graveoffering",
-          "creepygraveoffering"
+          "creepygraveoffering",
+          "graveoffering"
         ],
         "areaDetails": [
           {
@@ -7204,8 +7206,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/610.png",
         "habitatIds": [
-          "lumberjacksworkplace",
-          "crazyloghandicrafts"
+          "cozyloghandicrafts",
+          "crazyloghandicrafts",
+          "lumberjacksworkplace"
         ],
         "areaDetails": [
           {
@@ -7301,8 +7304,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/611.png",
         "habitatIds": [
-          "lumberjacksworkplace",
-          "crazyloghandicrafts"
+          "cozyloghandicrafts",
+          "crazyloghandicrafts",
+          "lumberjacksworkplace"
         ],
         "areaDetails": [
           {
@@ -7399,8 +7403,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/612.png",
         "habitatIds": [
-          "lumberjacksworkplace",
-          "crazyloghandicrafts"
+          "cozyloghandicrafts",
+          "crazyloghandicrafts",
+          "lumberjacksworkplace"
         ],
         "areaDetails": [
           {
@@ -7462,7 +7467,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Small log",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/smalllog.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/smalllog.png"
           }
         ],
         "isEventPokemon": false,
@@ -7504,8 +7509,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/704.png",
         "habitatIds": [
-          "tree-shadedflowerbed",
-          "raindancesite"
+          "raindancesite",
+          "tree-shadedflowerbed"
         ],
         "areaDetails": [
           {
@@ -8251,8 +8256,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/041.png",
         "habitatIds": [
-          "tree-shadedyellowtallgrass",
-          "parkbench"
+          "parkbench",
+          "tree-shadedyellowtallgrass"
         ],
         "areaDetails": [
           {
@@ -9041,8 +9046,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/059.png",
         "habitatIds": [
-          "minimuseum",
-          "magmafishingspot"
+          "magmafishingspot",
+          "minimuseum"
         ],
         "areaDetails": [
           {
@@ -9127,7 +9132,9 @@
         "rarity": "UNKNOWN",
         "types": [],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/083.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "allpackedup"
+        ],
         "areaDetails": [],
         "favoriteDetails": [],
         "specialtyDetails": [
@@ -9236,7 +9243,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Nonburnable Garbage",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/nonburnablegarbage.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/nonburnablegarbage.png"
           }
         ],
         "isEventPokemon": false,
@@ -9333,7 +9340,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Nonburnable Garbage",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/nonburnablegarbage.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/nonburnablegarbage.png"
           }
         ],
         "isEventPokemon": false,
@@ -9480,8 +9487,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/093.png",
         "habitatIds": [
-          "surpriseinstore",
-          "spookystudy"
+          "spookystudy",
+          "surpriseinstore"
         ],
         "areaDetails": [
           {
@@ -9897,8 +9904,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/102.png",
         "habitatIds": [
-          "tropicalvibes",
-          "shadedbeach"
+          "shadedbeach",
+          "tropicalvibes"
         ],
         "areaDetails": [
           {
@@ -10002,8 +10009,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/103.png",
         "habitatIds": [
-          "tropicalvibes",
-          "shadedbeach"
+          "shadedbeach",
+          "tropicalvibes"
         ],
         "areaDetails": [
           {
@@ -10356,7 +10363,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Stone",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/stone.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/stone.png"
           }
         ],
         "isEventPokemon": false,
@@ -10493,8 +10500,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/125.png",
         "habitatIds": [
-          "trashcancentral",
-          "light-upstage"
+          "light-upstage",
+          "trashcancentral"
         ],
         "areaDetails": [
           {
@@ -10865,9 +10872,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/143-mosslax.png",
         "habitatIds": [
+          "goodold-fashionedantiques",
           "gourmetsaltar",
-          "tree-shadedsnoozingsnorlax",
-          "goodold-fashionedantiques"
+          "tree-shadedsnoozingsnorlax"
         ],
         "areaDetails": [
           {
@@ -10958,6 +10965,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/143.png",
         "habitatIds": [
+          "goodold-fashionedantiques",
+          "tree-shadedsnoozingsnorlax",
           "yellowtallgrass"
         ],
         "areaDetails": [
@@ -11102,7 +11111,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Twine",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/twine.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/twine.png"
           }
         ],
         "isEventPokemon": false,
@@ -11200,7 +11209,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Twine",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/twine.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/twine.png"
           }
         ],
         "isEventPokemon": false,
@@ -11243,8 +11252,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/179.png",
         "habitatIds": [
-          "overgrowthvendingmachine",
-          "knittingstation"
+          "knittingstation",
+          "overgrowthvendingmachine"
         ],
         "areaDetails": [
           {
@@ -11306,7 +11315,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Fluff",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/fluff.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/fluff.png"
           }
         ],
         "isEventPokemon": false,
@@ -11349,8 +11358,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/180.png",
         "habitatIds": [
-          "nightfestivalvenue",
-          "knittingstation"
+          "knittingstation",
+          "nightfestivalvenue"
         ],
         "areaDetails": [
           {
@@ -11412,7 +11421,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Fluff",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/fluff.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/fluff.png"
           }
         ],
         "isEventPokemon": false,
@@ -11662,8 +11671,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/183.png",
         "habitatIds": [
-          "hydratedyellowtallgrass",
-          "dock"
+          "dock",
+          "hydratedyellowtallgrass"
         ],
         "areaDetails": [
           {
@@ -11902,7 +11911,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Squishy Clay",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/squishyclay.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/squishyclay.png"
           }
         ],
         "isEventPokemon": false,
@@ -11946,8 +11955,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/980.png",
         "habitatIds": [
-          "marshytallgrass",
-          "marshfishingspot"
+          "marshfishingspot",
+          "marshytallgrass"
         ],
         "areaDetails": [
           {
@@ -12003,7 +12012,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Squishy Clay",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/squishyclay.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/squishyclay.png"
           },
           {
             "name": "Bulldoze",
@@ -12243,8 +12252,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/256.png",
         "habitatIds": [
-          "resortmealprep",
-          "furnacespot"
+          "furnacespot",
+          "resortmealprep"
         ],
         "areaDetails": [
           {
@@ -12662,8 +12671,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/296.png",
         "habitatIds": [
-          "tree-shadedyellowtallgrass",
-          "allpackedup"
+          "allpackedup",
+          "tree-shadedyellowtallgrass"
         ],
         "areaDetails": [
           {
@@ -12766,8 +12775,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/297.png",
         "habitatIds": [
-          "tree-shadedyellowtallgrass",
-          "allpackedup"
+          "allpackedup",
+          "tree-shadedyellowtallgrass"
         ],
         "areaDetails": [
           {
@@ -13519,7 +13528,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Nonburnable Garbage",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/nonburnablegarbage.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/nonburnablegarbage.png"
           }
         ],
         "isEventPokemon": false,
@@ -13957,8 +13966,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/736.png",
         "habitatIds": [
-          "yellowtallgrass",
-          "vendingmachinebreakarea"
+          "vendingmachinebreakarea",
+          "yellowtallgrass"
         ],
         "areaDetails": [
           {
@@ -14455,8 +14464,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/922.png",
         "habitatIds": [
-          "tantalizingrestaurant",
-          "cafespace"
+          "cafespace",
+          "tantalizingrestaurant"
         ],
         "areaDetails": [
           {
@@ -15194,8 +15203,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/035.png",
         "habitatIds": [
-          "gracefulflowerbed",
-          "bronzelandmark"
+          "bronzelandmark",
+          "gracefulflowerbed"
         ],
         "areaDetails": [
           {
@@ -15292,8 +15301,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/036.png",
         "habitatIds": [
-          "gracefulflowerbed",
-          "bronzelandmark"
+          "bronzelandmark",
+          "gracefulflowerbed"
         ],
         "areaDetails": [
           {
@@ -15689,8 +15698,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/050.png",
         "habitatIds": [
-          "tree-shadedredtallgrass",
-          "containersnacking"
+          "containersnacking",
+          "tree-shadedredtallgrass"
         ],
         "areaDetails": [
           {
@@ -15787,8 +15796,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/051.png",
         "habitatIds": [
-          "tree-shadedredtallgrass",
-          "houseparty"
+          "houseparty",
+          "tree-shadedredtallgrass"
         ],
         "areaDetails": [
           {
@@ -15973,8 +15982,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/067.png",
         "habitatIds": [
-          "grassytrainingfield",
-          "boxtotherhythm"
+          "boxtotherhythm",
+          "grassytrainingfield"
         ],
         "areaDetails": [
           {
@@ -16077,8 +16086,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/068.png",
         "habitatIds": [
-          "grassytrainingfield",
-          "clink-clangironconstruction"
+          "clink-clangironconstruction",
+          "grassytrainingfield"
         ],
         "areaDetails": [
           {
@@ -16842,8 +16851,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/185.png",
         "habitatIds": [
-          "tree-shadedredtallgrass",
-          "houseparty"
+          "houseparty",
+          "tree-shadedredtallgrass"
         ],
         "areaDetails": [
           {
@@ -17045,8 +17054,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/430.png",
         "habitatIds": [
-          "elevatedredtallgrass",
-          "chirpingrecital"
+          "chirpingrecital",
+          "elevatedredtallgrass"
         ],
         "areaDetails": [
           {
@@ -17356,8 +17365,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/248.png",
         "habitatIds": [
-          "toilinthesoil",
-          "mossyrestspot"
+          "mossyrestspot",
+          "toilinthesoil"
         ],
         "areaDetails": [
           {
@@ -17461,9 +17470,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/270.png",
         "habitatIds": [
+          "hot-springfishingspot",
           "hydratedredtallgrass",
-          "upliftingduckweed",
-          "hot-springfishingspot"
+          "upliftingduckweed"
         ],
         "areaDetails": [
           {
@@ -17560,8 +17569,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/271.png",
         "habitatIds": [
-          "hydratedredtallgrass",
-          "hot-springfishingspot"
+          "hot-springfishingspot",
+          "hydratedredtallgrass"
         ],
         "areaDetails": [
           {
@@ -17938,8 +17947,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/401.png",
         "habitatIds": [
-          "redtallgrass",
-          "musicandmagazines"
+          "musicandmagazines",
+          "redtallgrass"
         ],
         "areaDetails": [
           {
@@ -18034,8 +18043,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/402.png",
         "habitatIds": [
-          "redtallgrass",
-          "musicandmagazines"
+          "musicandmagazines",
+          "redtallgrass"
         ],
         "areaDetails": [
           {
@@ -18133,8 +18142,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/441.png",
         "habitatIds": [
-          "elevatedredtallgrass",
-          "chirpingrecital"
+          "chirpingrecital",
+          "elevatedredtallgrass"
         ],
         "areaDetails": [
           {
@@ -18236,8 +18245,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/447.png",
         "habitatIds": [
-          "redtallgrass",
-          "boxtotherhythm"
+          "boxtotherhythm",
+          "redtallgrass"
         ],
         "areaDetails": [
           {
@@ -18583,7 +18592,9 @@
           {
             "name": "Litter",
             "id": "specialty_litter",
-            "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png"
+            "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
+            "litterItemName": "Twine",
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/twine.png"
           }
         ],
         "isEventPokemon": false,
@@ -18627,8 +18638,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/637.png",
         "habitatIds": [
-          "tree-shadedgracefulflowerbed",
-          "piping-hotlava"
+          "piping-hotlava",
+          "tree-shadedgracefulflowerbed"
         ],
         "areaDetails": [
           {
@@ -18690,7 +18701,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Twine",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/twine.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/twine.png"
           }
         ],
         "isEventPokemon": false,
@@ -18913,8 +18924,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/724.png",
         "habitatIds": [
-          "pointytree-shadedrockytallgrass",
-          "modernliving"
+          "modernliving",
+          "pointytree-shadedrockytallgrass"
         ],
         "areaDetails": [
           {
@@ -19694,8 +19705,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/839.png",
         "habitatIds": [
-          "railroadcrossing",
-          "heavyiron"
+          "heavyiron",
+          "railroadcrossing"
         ],
         "areaDetails": [
           {
@@ -20097,8 +20108,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/926.png",
         "habitatIds": [
-          "gracefulflowerbed",
-          "bestbreadbakery"
+          "bestbreadbakery",
+          "gracefulflowerbed"
         ],
         "areaDetails": [
           {
@@ -20195,8 +20206,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/927.png",
         "habitatIds": [
-          "gracefulflowerbed",
-          "bestbreadbakery"
+          "bestbreadbakery",
+          "gracefulflowerbed"
         ],
         "areaDetails": [
           {
@@ -20598,8 +20609,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/969.png",
         "habitatIds": [
-          "creepywhiterocks",
-          "containersnacking"
+          "containersnacking",
+          "creepywhiterocks"
         ],
         "areaDetails": [
           {
@@ -20655,7 +20666,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Iron Ore",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/ironore.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/ironore.png"
           }
         ],
         "isEventPokemon": false,
@@ -20698,8 +20709,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/970.png",
         "habitatIds": [
-          "creepywhiterocks",
-          "containersnacking"
+          "containersnacking",
+          "creepywhiterocks"
         ],
         "areaDetails": [
           {
@@ -20755,7 +20766,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Iron Ore",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/ironore.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/ironore.png"
           }
         ],
         "isEventPokemon": false,
@@ -21372,8 +21383,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/062.png",
         "habitatIds": [
-          "sewerholeinspection",
-          "dojotraining"
+          "dojotraining",
+          "sewerholeinspection"
         ],
         "areaDetails": [
           {
@@ -21477,9 +21488,9 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/186.png",
         "habitatIds": [
-          "hydratedgracefulflowerbed",
           "flowergardenstumpstage",
-          "harmonioushotspring"
+          "harmonioushotspring",
+          "hydratedgracefulflowerbed"
         ],
         "areaDetails": [
           {
@@ -21581,8 +21592,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/063.png",
         "habitatIds": [
-          "surgingpsychicpower",
-          "fortune-tellerstable"
+          "fortune-tellerstable",
+          "surgingpsychicpower"
         ],
         "areaDetails": [
           {
@@ -21774,8 +21785,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/065.png",
         "habitatIds": [
-          "surgingpsychicpower",
-          "experimentspace"
+          "experimentspace",
+          "surgingpsychicpower"
         ],
         "areaDetails": [
           {
@@ -21859,7 +21870,10 @@
         "rarity": "UNKNOWN",
         "types": [],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/439.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "publicreadingmaterial",
+          "spotlesswashingstation"
+        ],
         "areaDetails": [],
         "favoriteDetails": [],
         "specialtyDetails": [
@@ -21891,7 +21905,9 @@
         "rarity": "UNKNOWN",
         "types": [],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/122.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "spotlesswashingstation"
+        ],
         "areaDetails": [],
         "favoriteDetails": [],
         "specialtyDetails": [
@@ -23317,8 +23333,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/281.png",
         "habitatIds": [
-          "studyarea",
-          "moisturizingmakeupstand"
+          "moisturizingmakeupstand",
+          "studyarea"
         ],
         "areaDetails": [
           {
@@ -23416,8 +23432,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/282.png",
         "habitatIds": [
-          "moisturizingmakeupstand",
-          "minilibrary"
+          "minilibrary",
+          "moisturizingmakeupstand"
         ],
         "areaDetails": [
           {
@@ -23874,7 +23890,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Squishy Clay",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/squishyclay.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/squishyclay.png"
           }
         ],
         "isEventPokemon": false,
@@ -24177,7 +24193,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Fluff",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/fluff.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/fluff.png"
           }
         ],
         "isEventPokemon": false,
@@ -24276,7 +24292,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Fluff",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/fluff.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/fluff.png"
           },
           {
             "name": "Fly",
@@ -24970,7 +24986,9 @@
           {
             "name": "Litter",
             "id": "specialty_litter",
-            "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png"
+            "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
+            "litterItemName": "Vine Rope",
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/vinerope.png"
           }
         ],
         "isEventPokemon": false,
@@ -25074,7 +25092,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Vine Rope",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/vinerope.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/vinerope.png"
           }
         ],
         "isEventPokemon": false,
@@ -25117,8 +25135,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/497.png",
         "habitatIds": [
-          "tree-shadedfluffyflowerbed",
-          "publicreadingmaterial"
+          "publicreadingmaterial",
+          "tree-shadedfluffyflowerbed"
         ],
         "areaDetails": [
           {
@@ -25180,7 +25198,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Vine Rope",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/vinerope.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/vinerope.png"
           }
         ],
         "isEventPokemon": false,
@@ -26214,8 +26232,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/886.png",
         "habitatIds": [
-          "tree-shadedpinktallgrass",
-          "officestoreroom"
+          "officestoreroom",
+          "tree-shadedpinktallgrass"
         ],
         "areaDetails": [
           {
@@ -26420,8 +26438,8 @@
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/906.png",
         "habitatIds": [
-          "tree-shadedpinktallgrass",
-          "interrogationdesk"
+          "interrogationdesk",
+          "tree-shadedpinktallgrass"
         ],
         "areaDetails": [
           {
@@ -27457,7 +27475,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Stone",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/stone.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/stone.png"
           }
         ],
         "isEventPokemon": false,
@@ -27658,7 +27676,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Stone",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/stone.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/stone.png"
           }
         ],
         "isEventPokemon": false,
@@ -27859,7 +27877,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Stone",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/stone.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/stone.png"
           }
         ],
         "isEventPokemon": false,
@@ -28060,7 +28078,7 @@
             "description": "Pokemon with the Litter specialty will drop useful materials near their homes",
             "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
             "litterItemName": "Stone",
-            "litterItemIconUrl": "https://www.serebii.net/pokemonpokopia/items/stone.png"
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/stone.png"
           }
         ],
         "isEventPokemon": false,
@@ -29542,7 +29560,9 @@
           "Flying"
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/187.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "yellowcarpet"
+        ],
         "areaDetails": [
           {
             "name": "Withered Wastelands"
@@ -29610,7 +29630,10 @@
           "Flying"
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/188.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "field-tripfriends",
+          "yellowcarpet"
+        ],
         "areaDetails": [
           {
             "name": "Withered Wastelands"
@@ -29679,7 +29702,10 @@
           "Flying"
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/189.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "dandelionlunchtime",
+          "yellowcarpet"
+        ],
         "areaDetails": [
           {
             "name": "Withered Wastelands"
@@ -29710,7 +29736,9 @@
           {
             "name": "Litter",
             "id": "specialty_litter",
-            "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png"
+            "iconUrl": "https://serebii.net/pokemonpokopia/pokedex/specialty/litter.png",
+            "litterItemName": "Fluff",
+            "litterItemIconUrl": "https://serebii.net/pokemonpokopia/items/fluff.png"
           }
         ],
         "isEventPokemon": true,
@@ -29751,7 +29779,9 @@
           "Ghost"
         ],
         "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/302.png",
-        "habitatIds": [],
+        "habitatIds": [
+          "treasure-huntingset"
+        ],
         "areaDetails": [
           {
             "name": "Withered Wastelands"

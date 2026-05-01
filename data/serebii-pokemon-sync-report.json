@@ -1,8 +1,9 @@
 {
-  "generatedAt": "2026-05-01T21:46:18.326Z",
+  "generatedAt": "2026-05-01T22:38:49.869Z",
   "sourceUrls": {
     "available": "https://serebii.net/pokemonpokopia/availablepokemon.shtml",
-    "event": "https://serebii.net/pokemonpokopia/eventpokedex.shtml"
+    "event": "https://serebii.net/pokemonpokopia/eventpokedex.shtml",
+    "litter": "https://serebii.net/pokemonpokopia/litter.shtml"
   },
   "totals": {
     "availableRows": 308,
@@ -11,7 +12,9 @@
     "datasetCount": 312,
     "updatedCount": 312,
     "renamedCount": 0,
-    "appendedCount": 0
+    "appendedCount": 0,
+    "litterRewardsMapped": 34,
+    "habitatNameMappings": 282
   },
   "appendedStandardRows": [],
   "appendedEventRows": [],
