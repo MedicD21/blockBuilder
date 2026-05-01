@@ -975,7 +975,10 @@ export default function BlockBuilder() {
         }
       }
 
-      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      const rawKey = typeof event.key === "string" ? event.key : "";
+      if (rawKey.length === 0) return;
+
+      const key = rawKey.length === 1 ? rawKey.toLowerCase() : rawKey;
       if (key === "a") {
         event.preventDefault();
         setEraseMode((prev) => !prev);

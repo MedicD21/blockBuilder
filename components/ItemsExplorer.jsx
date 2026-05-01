@@ -604,7 +604,7 @@ export function ItemsExplorer({ dataset, pokemonDataset, tagSpriteMap = {} }) {
 
           return (
             <section
-              className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.75)]'
+              className='scroll-mt-[150px] rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.75)] sm:scroll-mt-[170px]'
               id={`section-${section.id}`}
               key={section.id}
             >

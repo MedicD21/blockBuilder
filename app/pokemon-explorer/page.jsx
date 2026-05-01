@@ -13,29 +13,32 @@ export const metadata = {
 export default function PokemonExplorerPage() {
   return (
     <div className='relative min-h-[100dvh] overflow-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
-      <div aria-hidden='true' className='absolute inset-0 z-[1]'>
+      <div
+        aria-hidden='true'
+        className='pointer-events-none absolute inset-0 z-[1] opacity-95'
+      >
         <Particles
           alphaParticles
-          cameraDistance={22}
+          cameraDistance={24}
           className='h-full w-full'
           disableRotation={false}
           moveParticlesOnHover={false}
-          particleBaseSize={120}
-          particleColors={["#a0c4ff", "#f2a067", "#79d6d7"]}
-          particleCount={900}
-          particleSpread={26}
+          particleBaseSize={180}
+          particleColors={["#c9dcff", "#ffd2ad", "#9effff", "#ffffff"]}
+          particleCount={1300}
+          particleSpread={30}
           pixelRatio={1}
-          sizeRandomness={0.95}
-          speed={0.08}
+          sizeRandomness={1}
+          speed={0.11}
         />
       </div>
 
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-0 z-[2] opacity-70'
+        className='pointer-events-none absolute inset-0 z-[2] opacity-45'
         style={{
           background:
-            "radial-gradient(circle at 20% 20%, rgba(160,196,255,.24), transparent 42%), radial-gradient(circle at 80% 18%, rgba(242,160,103,.18), transparent 36%), linear-gradient(180deg, rgba(10,10,20,.9), rgba(10,10,20,.98))",
+            "radial-gradient(circle at 20% 20%, rgba(160,196,255,.3), transparent 44%), radial-gradient(circle at 80% 18%, rgba(242,160,103,.24), transparent 40%), linear-gradient(180deg, rgba(10,10,20,.74), rgba(10,10,20,.88))",
         }}
       />
 
