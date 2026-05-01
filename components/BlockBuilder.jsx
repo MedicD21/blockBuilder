@@ -119,31 +119,59 @@ const BUILDER_SECTIONS = [
     items: [
       {
         id: "pitchedbrickroof",
-        name: "Pitched brick roof",
+        name: "Pitched Brick Roof",
         color: "#F2A067",
         hex: 0xf2a067,
         shape: "roof",
       },
       {
-        id: "slopedtiledroof",
-        name: "Sloped tiled roof",
-        color: "#D98B45",
-        hex: 0xd98b45,
+        id: "pitchedtiledroof",
+        name: "Pitched Tiled Roof",
+        color: "#43aaee",
+        hex: 0x43aaee,
         shape: "roof",
       },
       {
-        id: "slopedstoneroof",
-        name: "Sloped stone roof",
-        color: "#8A8A97",
-        hex: 0x8a8a97,
+        id: "pitchedclayroof",
+        name: "Pitched Clay Roof",
+        color: "#0c0c57",
+        hex: 0x0c0c57,
         shape: "roof",
       },
       {
         id: "slopedtentroof",
-        name: "Sloped tent roof",
-        color: "#C3A86A",
-        hex: 0xc3a86a,
+        name: "Sloped Tent Roof",
+        color: "#fac852",
+        hex: 0xfac852,
         shape: "roof",
+      },
+      {
+        id: "hippedroof",
+        name: "Hipped Roof",
+        color: "#f2a067",
+        hex: 0xf2a067,
+        shape: "roofHip",
+      },
+      {
+        id: "roofvalley",
+        name: "Roof Valley",
+        color: "#f2a067",
+        hex: 0xf2a067,
+        shape: "roofValley",
+      },
+      {
+        id: "flatroof",
+        name: "Flat Roof",
+        color: "#f2a067",
+        hex: 0xf2a067,
+        shape: "roofFlat",
+      },
+      {
+        id: "roundedflatroof",
+        name: "Rounded Flat Roof",
+        color: "#f2a067",
+        hex: 0xf2a067,
+        shape: "roofRounded",
       },
     ],
   },
@@ -161,10 +189,10 @@ const BUILDER_ITEM_MAP = new Map(BUILDER_ITEMS.map((item) => [item.id, item]));
 
 const DEFAULT_GRID_SIZE = 20;
 const MIN_GRID_SIZE = 8;
-const MAX_GRID_SIZE = 60;
+const MAX_GRID_SIZE = 100;
 const DEFAULT_GRID_HEIGHT = 15;
 const MIN_GRID_HEIGHT = 4;
-const MAX_GRID_HEIGHT = 40;
+const MAX_GRID_HEIGHT = 100;
 const CELL = 1;
 const CLEAR_EVENT = "block-builder-clear";
 const ROOF_ROTATIONS = [0, 90, 180, 270];
@@ -1107,6 +1135,113 @@ export default function BlockBuilder() {
     roofProfile.lineTo(CELL * 0.47, -CELL * 0.47);
     roofProfile.lineTo(-CELL * 0.47, -CELL * 0.47);
 
+    // Corner hip roof custom geometry:
+    // Two side faces are 45° slopes (matching pitched roof angle/height),
+    // with an apex at one corner so it blends into corner joins better.
+    const roofHipGeometry = new THREE.BufferGeometry();
+    const roofHipVertices = new Float32Array([
+      // A (apex corner), B1 (x edge), B2 (z edge), B3 (far corner)
+      -CELL * 0.47,
+      CELL * 0.47,
+      -CELL * 0.47, // 0 A
+      CELL * 0.47,
+      -CELL * 0.47,
+      -CELL * 0.47, // 1 B1
+      -CELL * 0.47,
+      -CELL * 0.47,
+      CELL * 0.47, // 2 B2
+      CELL * 0.47,
+      -CELL * 0.47,
+      CELL * 0.47, // 3 B3
+    ]);
+    const roofHipIndices = [
+      0,
+      3,
+      1, // slope face (x axis side)
+      0,
+      2,
+      3, // slope face (z axis side)
+      0,
+      1,
+      2, // inner/diagonal face
+      1,
+      3,
+      2, // base
+    ];
+    roofHipGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(roofHipVertices, 3),
+    );
+    roofHipGeometry.setIndex(roofHipIndices);
+    roofHipGeometry.computeVertexNormals();
+
+    // Valley roof custom geometry (inverse corner):
+    // Keep the two 45° mating slopes, then add two lower right-triangle
+    // filler faces so the underside gap is filled.
+    const roofValleyGeometry = new THREE.BufferGeometry();
+    const roofValleyVertices = new Float32Array([
+      // V (recessed corner), H1 (x side), H2 (z side), H3 (far corner)
+      -CELL * 0.47,
+      -CELL * 0.47,
+      -CELL * 0.47, // 0 V
+      CELL * 0.47,
+      CELL * 0.47,
+      -CELL * 0.47, // 1 H1
+      -CELL * 0.47,
+      CELL * 0.47,
+      CELL * 0.47, // 2 H2
+      CELL * 0.47,
+      CELL * 0.47,
+      CELL * 0.47, // 3 H3
+      CELL * 0.47,
+      -CELL * 0.47,
+      CELL * 0.47, // 4 B3 (lower far corner for underside filler)
+    ]);
+    const roofValleyIndices = [
+      0,
+      1,
+      3, // slope face (x side)
+      0,
+      3,
+      2, // slope face (z side)
+      0,
+      2,
+      1, // inner diagonal face
+      1,
+      2,
+      3, // top
+      0,
+      1,
+      4, // lower right-triangle filler (x side underside)
+      0,
+      4,
+      2, // lower right-triangle filler (z side underside)
+    ];
+    roofValleyGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(roofValleyVertices, 3),
+    );
+    roofValleyGeometry.setIndex(roofValleyIndices);
+    roofValleyGeometry.computeVertexNormals();
+
+    const roofFlatGeometry = new THREE.BoxGeometry(
+      CELL * 0.94,
+      CELL * 0.24,
+      CELL * 0.94,
+    );
+
+    const roofRoundedGeometry = new THREE.CylinderGeometry(
+      CELL * 0.47,
+      CELL * 0.47,
+      CELL * 0.94,
+      20,
+      1,
+      false,
+      0,
+      Math.PI,
+    );
+    roofRoundedGeometry.rotateZ(Math.PI / 2);
+
     const geometryCache = {
       cube: new THREE.BoxGeometry(CELL * 0.94, CELL * 0.94, CELL * 0.94),
       roof: new THREE.ExtrudeGeometry(roofProfile, {
@@ -1115,8 +1250,22 @@ export default function BlockBuilder() {
         bevelEnabled: false,
         curveSegments: 1,
       }),
+      roofHip: roofHipGeometry,
+      roofValley: roofValleyGeometry,
+      roofFlat: roofFlatGeometry,
+      roofRounded: roofRoundedGeometry,
     };
     geometryCache.roof.center();
+
+    const shapeCenterYOffsetByShape = {};
+    const shapeAnchorLiftByShape = {
+      roofFlat: CELL,
+      roofRounded: CELL,
+    };
+    Object.entries(geometryCache).forEach(([shape, geometry]) => {
+      geometry.computeBoundingBox();
+      shapeCenterYOffsetByShape[shape] = -(geometry.boundingBox?.min.y ?? 0);
+    });
 
     const edgesCache = Object.entries(geometryCache).reduce(
       (acc, [shape, geometry]) => {
@@ -1134,7 +1283,12 @@ export default function BlockBuilder() {
 
     const matCache = {};
     BUILDER_ITEMS.forEach((item) => {
-      matCache[item.id] = new THREE.MeshLambertMaterial({ color: item.hex });
+      matCache[item.id] = new THREE.MeshLambertMaterial({
+        color: item.hex,
+        // Valley corners expose underside triangles between adjacent roof slopes.
+        // Render both sides so those right-triangle undersides don't disappear.
+        side: item.shape === "roofValley" ? THREE.DoubleSide : THREE.FrontSide,
+      });
     });
 
     const toCellKey = (layer, row, col) => `${layer}-${row}-${col}`;
@@ -1267,11 +1421,13 @@ export default function BlockBuilder() {
         }
 
         const geometry = geometryCache[shape] || geometryCache.cube;
+        const centerYOffset = shapeCenterYOffsetByShape[shape] ?? CELL * 0.5;
+        const anchorLift = shapeAnchorLiftByShape[shape] ?? 0;
         offsets.forEach(({ rowOffset, colOffset, layerOffset }) => {
           const previewMesh = new THREE.Mesh(geometry, hoverMaterial);
           previewMesh.position.set(
             colOffset * CELL,
-            layerOffset * CELL,
+            layerOffset * CELL + centerYOffset + anchorLift,
             rowOffset * CELL,
           );
           hoverGroup.add(previewMesh);
@@ -1316,6 +1472,8 @@ export default function BlockBuilder() {
       const shape = item.shape || "cube";
       const geometry = geometryCache[shape] || geometryCache.cube;
       const edges = edgesCache[shape] || edgesCache.cube;
+      const centerYOffset = shapeCenterYOffsetByShape[shape] ?? CELL * 0.5;
+      const anchorLift = shapeAnchorLiftByShape[shape] ?? 0;
 
       cells.forEach((cell, index) => {
         const isAnchor = treatAsIndependentCells || index === 0;
@@ -1328,7 +1486,7 @@ export default function BlockBuilder() {
         const mesh = new THREE.Mesh(geometry, matCache[item.id]);
         mesh.position.set(
           cell.col,
-          (cell.layer - 1) * CELL + CELL * 0.5,
+          (cell.layer - 1) * CELL + centerYOffset + anchorLift,
           cell.row,
         );
         mesh.castShadow = true;
@@ -1690,11 +1848,7 @@ export default function BlockBuilder() {
         }
 
         hoverGroup.visible = true;
-        hoverGroup.position.set(
-          info.col,
-          (info.layer - 1) * CELL + CELL * 0.5,
-          info.row,
-        );
+        hoverGroup.position.set(info.col, (info.layer - 1) * CELL, info.row);
       } else {
         hoverGroup.visible = false;
       }
@@ -1805,6 +1959,34 @@ export default function BlockBuilder() {
         displayName: getItemDisplayName(item),
       })),
   })).filter((section) => section.usedItems.length > 0);
+  const getItemSwatchStyle = (item) => {
+    if (item.sectionId !== "roof") {
+      return { background: item.color };
+    }
+
+    if (item.shape === "roofFlat") {
+      return { background: item.color };
+    }
+
+    if (item.shape === "roofRounded") {
+      return {
+        background: item.color,
+        borderRadius: "9999px 9999px 3px 3px",
+      };
+    }
+
+    if (item.shape === "roofValley") {
+      return {
+        background: item.color,
+        clipPath: "polygon(0% 0%, 100% 0%, 50% 100%)",
+      };
+    }
+
+    return {
+      background: item.color,
+      clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
+    };
+  };
 
   return (
     <main className='flex min-h-[100dvh] flex-col overflow-x-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
@@ -2198,15 +2380,7 @@ export default function BlockBuilder() {
                         >
                           <span
                             className='h-[14px] w-[14px] flex-shrink-0 rounded-[2px] border border-white/15'
-                            style={
-                              item.shape === "roof"
-                                ? {
-                                    background: item.color,
-                                    clipPath:
-                                      "polygon(50% 0%, 100% 100%, 0% 100%)",
-                                  }
-                                : { background: item.color }
-                            }
+                            style={getItemSwatchStyle(item)}
                           />
                           <span className='min-w-0 truncate'>
                             {getItemDisplayName(item)}
@@ -2379,14 +2553,7 @@ export default function BlockBuilder() {
                     >
                       <span
                         className='h-[10px] w-[10px] flex-shrink-0 rounded-[2px] border border-white/15'
-                        style={
-                          item.shape === "roof"
-                            ? {
-                                background: item.color,
-                                clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
-                              }
-                            : { background: item.color }
-                        }
+                        style={getItemSwatchStyle(item)}
                       />
                       <input
                         className='min-w-0 flex-1 rounded border border-[#2f3555] bg-white/5 px-2 py-1 text-[13px] tracking-[0.04em] text-[#e6ebff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
