@@ -445,7 +445,6 @@ export default function BlockBuilder() {
 
   useEffect(() => {
     roofRotationRef.current = roofRotation;
-    if (selectedBlockRef.current.shape !== "roof") return;
     refreshHoverPreviewRef.current();
   }, [roofRotation]);
 
@@ -933,7 +932,7 @@ export default function BlockBuilder() {
     }
   };
 
-  const rotateRoofSelection = useCallback(() => {
+  const rotateSelectedItem = useCallback(() => {
     setRoofRotation((prev) => {
       const index = ROOF_ROTATIONS.indexOf(prev);
       const nextIndex = index === -1 ? 0 : (index + 1) % ROOF_ROTATIONS.length;
@@ -996,9 +995,8 @@ export default function BlockBuilder() {
       }
 
       if (key === "f") {
-        if (selectedBlockRef.current.shape !== "roof") return;
         event.preventDefault();
-        rotateRoofSelection();
+        rotateSelectedItem();
         return;
       }
 
@@ -1017,7 +1015,7 @@ export default function BlockBuilder() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [gridHeight, rotateRoofSelection]);
+  }, [gridHeight, rotateSelectedItem]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1137,6 +1135,11 @@ export default function BlockBuilder() {
     });
 
     const toCellKey = (layer, row, col) => `${layer}-${row}-${col}`;
+    const normalizeRightAngleRotation = (rotationDegrees) => {
+      const turns = Math.round(Number(rotationDegrees || 0) / 90);
+      const normalizedTurns = ((turns % 4) + 4) % 4;
+      return normalizedTurns * 90;
+    };
 
     const getItemFootprint = (item) => {
       const isDynamicWallBlock = item.sectionId === "blocks";
@@ -1153,22 +1156,50 @@ export default function BlockBuilder() {
       };
     };
 
-    const getPlacementCells = (item, row, col, layer) => {
+    const getPlacementOffsets = (item, rotationDegrees) => {
+      const { width, height } = getItemFootprint(item);
+      const normalizedRotation = normalizeRightAngleRotation(rotationDegrees);
+      const offsets = [];
+
+      for (let layerOffset = 0; layerOffset < height; layerOffset += 1) {
+        for (let widthOffset = 0; widthOffset < width; widthOffset += 1) {
+          let rowOffset = 0;
+          let colOffset = 0;
+
+          if (normalizedRotation === 0) {
+            colOffset = widthOffset;
+          } else if (normalizedRotation === 90) {
+            rowOffset = widthOffset;
+          } else if (normalizedRotation === 180) {
+            colOffset = -widthOffset;
+          } else {
+            rowOffset = -widthOffset;
+          }
+
+          offsets.push({ rowOffset, colOffset, layerOffset });
+        }
+      }
+
+      return { width, height, normalizedRotation, offsets };
+    };
+
+    const getPlacementCells = (item, row, col, layer, rotationDegrees = 0) => {
       if (layer < 1 || layer > gridHeight) return null;
       if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) return null;
 
-      const { width, height } = getItemFootprint(item);
+      const { offsets } = getPlacementOffsets(item, rotationDegrees);
       const cells = [];
 
-      for (let layerOffset = 0; layerOffset < height; layerOffset += 1) {
+      for (let i = 0; i < offsets.length; i += 1) {
+        const { rowOffset, colOffset, layerOffset } = offsets[i];
         const nextLayer = layer + layerOffset;
-        if (nextLayer < 1 || nextLayer > gridHeight) return null;
+        const nextRow = row + rowOffset;
+        const nextCol = col + colOffset;
 
-        for (let colOffset = 0; colOffset < width; colOffset += 1) {
-          const nextCol = col + colOffset;
-          if (nextCol < 0 || nextCol >= gridSize) return null;
-          cells.push({ row, col: nextCol, layer: nextLayer });
-        }
+        if (nextLayer < 1 || nextLayer > gridHeight) return null;
+        if (nextRow < 0 || nextRow >= gridSize) return null;
+        if (nextCol < 0 || nextCol >= gridSize) return null;
+        cells.push({ row: nextRow, col: nextCol, layer: nextLayer });
       }
 
       return cells;
@@ -1223,8 +1254,9 @@ export default function BlockBuilder() {
       if (!selected) return;
 
       const shape = selected.shape || "cube";
-      const { width, height } = getItemFootprint(selected);
-      const previewSignature = `${shape}:${width}x${height}`;
+      const { width, height, normalizedRotation, offsets } =
+        getPlacementOffsets(selected, roofRotationRef.current);
+      const previewSignature = `${shape}:${width}x${height}:${normalizedRotation}`;
 
       if (hoverPreviewSignatureRef.current !== previewSignature) {
         while (hoverGroup.children.length > 0) {
@@ -1232,21 +1264,20 @@ export default function BlockBuilder() {
         }
 
         const geometry = geometryCache[shape] || geometryCache.cube;
-        for (let layerOffset = 0; layerOffset < height; layerOffset += 1) {
-          for (let colOffset = 0; colOffset < width; colOffset += 1) {
-            const previewMesh = new THREE.Mesh(geometry, hoverMaterial);
-            previewMesh.position.set(colOffset, layerOffset * CELL, 0);
-            hoverGroup.add(previewMesh);
-          }
-        }
+        offsets.forEach(({ rowOffset, colOffset, layerOffset }) => {
+          const previewMesh = new THREE.Mesh(geometry, hoverMaterial);
+          previewMesh.position.set(
+            colOffset * CELL,
+            layerOffset * CELL,
+            rowOffset * CELL,
+          );
+          hoverGroup.add(previewMesh);
+        });
 
         hoverPreviewSignatureRef.current = previewSignature;
       }
 
-      const rotationY =
-        shape === "roof"
-          ? THREE.MathUtils.degToRad(roofRotationRef.current)
-          : 0;
+      const rotationY = THREE.MathUtils.degToRad(normalizedRotation);
       hoverGroup.children.forEach((previewMesh) => {
         previewMesh.rotation.y = rotationY;
       });
@@ -1373,7 +1404,16 @@ export default function BlockBuilder() {
 
     const placeBlock = (row, col, layer) => {
       const selected = selectedBlockRef.current;
-      const cells = getPlacementCells(selected, row, col, layer);
+      const normalizedRotation = normalizeRightAngleRotation(
+        roofRotationRef.current,
+      );
+      const cells = getPlacementCells(
+        selected,
+        row,
+        col,
+        layer,
+        normalizedRotation,
+      );
       if (!canPlaceCells(cells)) return;
 
       const shouldPlaceAsIndividualCells = selected.sectionId === "blocks";
@@ -1388,10 +1428,7 @@ export default function BlockBuilder() {
         };
       }
 
-      const rotationY =
-        selected.shape === "roof"
-          ? THREE.MathUtils.degToRad(roofRotationRef.current)
-          : 0;
+      const rotationY = THREE.MathUtils.degToRad(normalizedRotation);
 
       addPlacementMeshes({
         item: selected,
@@ -1642,6 +1679,7 @@ export default function BlockBuilder() {
           info.row,
           info.col,
           info.layer,
+          roofRotationRef.current,
         );
         if (!canPlaceCells(cells)) {
           hoverGroup.visible = false;
@@ -1753,9 +1791,6 @@ export default function BlockBuilder() {
   );
   const minimumGridSize = getMinimumGridSize();
   const minimumGridHeight = getMinimumGridHeight();
-  const selectedBuilderItem =
-    BUILDER_ITEM_MAP.get(selectedBlockId) ?? BUILDER_ITEMS[0];
-  const isRoofSelected = selectedBuilderItem.shape === "roof";
   const showMobileOverlayMenu = isMobileViewport && isMobileMenuOpen;
   const exportSummarySections = BUILDER_SECTIONS.map((section) => ({
     ...section,
@@ -1770,7 +1805,7 @@ export default function BlockBuilder() {
 
   return (
     <main className='flex min-h-[100dvh] flex-col overflow-x-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
-      <header className='z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-4 py-4 sm:px-6 sm:py-5'>
+      <header className='z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b-2 border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-4 py-4 sm:px-6 sm:py-5 lg:flex-nowrap'>
         <div className='flex items-center gap-2'>
           <Link aria-label='Go to home screen' href='/'>
             <Image
@@ -1786,11 +1821,17 @@ export default function BlockBuilder() {
             Block Builder
           </h1>
         </div>
-        <p className='hidden whitespace-nowrap text-[16px] tracking-[0.1em] text-[#666] lg:block'>
-          TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM | RIGHT CLICK DRAG = PAN
-        </p>
-        <div className='flex-1' />
-        <nav className='flex w-full justify-end gap-3 border-t border-[#49a281] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
+        <div className='hidden min-w-0 flex-1 lg:block'>
+          <p className='truncate text-[16px] tracking-[0.1em] text-[#7f8bb0]'>
+            TAP = PLACE | DRAG = ROTATE | PINCH = ZOOM | RIGHT CLICK DRAG = PAN
+          </p>
+          <p className='mt-1 text-[14px] text-[#7f8bb0]' />
+          SHORTCUTS: Q = BLOCKS | W = DOORS | E = WINDOWS | R = ROOF
+          <p className='mt-1 text-[14px] text-[#7f8bb0]'>
+            A = ERASE | S = LAYER DOWN | D = LAYER UP | F = ROTATE ITEM
+          </p>
+        </div>
+        <nav className='ml-auto flex w-full justify-end gap-3 border-t border-[#49a281] pt-2 sm:w-auto sm:border-t-0 sm:pt-0'>
           <Link
             className='inline-flex items-center whitespace-nowrap rounded-full border border-[#49a281] bg-[rgba(73,162,129,.14)] px-3 py-1 text-[14px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff] sm:px-4 sm:text-[16px] lg:text-[18px]'
             href='/pokemon-explorer'
@@ -1812,17 +1853,17 @@ export default function BlockBuilder() {
           ref={wrapRef}
         >
           <canvas className='block h-full w-full' ref={canvasRef} />
-          {isRoofSelected && !showMobileOverlayMenu ? (
+          {!showMobileOverlayMenu ? (
             <button
               className='absolute right-3 top-3 z-30 rounded-md border border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-3 py-2 text-[12px] font-semibold tracking-[0.1em] text-[#a0c4ff] shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition hover:bg-[rgba(30,30,50,.98)]'
-              onClick={rotateRoofSelection}
+              onClick={rotateSelectedItem}
               type='button'
             >
-              Rotate Roof
+              Rotate Item
             </button>
           ) : null}
           <div className='pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#3a3a5c] bg-black/60 px-3 py-1 text-[11px] tracking-[0.1em] text-[#666] sm:text-[12px]'>
-            Tap grid to place blocks
+            Tap grid to place items
           </div>
         </div>
 
