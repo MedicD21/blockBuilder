@@ -348,7 +348,7 @@ export function PokemonExplorer({ dataset }) {
                       <div>
                         <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
                           Favorites
-                          <span className='ml-1 text-xs font-normal tracking-[0.02em] text-[#666]'>
+                          <span className='ml-1 text-xs font-normal tracking-[0.02em] text-[#5cf73d]'>
                             (tappable to filter items)
                           </span>
                         </p>
