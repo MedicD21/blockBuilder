@@ -1175,47 +1175,81 @@ export default function BlockBuilder() {
     roofHipGeometry.setIndex(roofHipIndices);
     roofHipGeometry.computeVertexNormals();
 
-    // Valley roof custom geometry (inverse corner):
-    // Keep the two 45° mating slopes, then add two lower right-triangle
-    // filler faces so the underside gap is filled.
+    // Valley roof custom geometry:
+    // - two top pitches (same 45° pitch family as roof pieces) meeting at a valley seam
+    // - front and right side faces are right triangles
+    // - left and back side faces remain square
+    //
+    // Plan view logic:
+    // split the square footprint by the NW->SE diagonal, build one pitch on each half.
     const roofValleyGeometry = new THREE.BufferGeometry();
     const roofValleyVertices = new Float32Array([
-      // V (recessed corner), H1 (x side), H2 (z side), H3 (far corner)
+      // 0 A: back-left bottom
       -CELL * 0.47,
       -CELL * 0.47,
-      -CELL * 0.47, // 0 V
-      CELL * 0.47,
-      CELL * 0.47,
-      -CELL * 0.47, // 1 H1
       -CELL * 0.47,
-      CELL * 0.47,
-      CELL * 0.47, // 2 H2
-      CELL * 0.47,
-      CELL * 0.47,
-      CELL * 0.47, // 3 H3
+      // 1 B: back-right bottom
       CELL * 0.47,
       -CELL * 0.47,
-      CELL * 0.47, // 4 B3 (lower far corner for underside filler)
+      -CELL * 0.47,
+      // 2 C: front-left bottom
+      -CELL * 0.47,
+      -CELL * 0.47,
+      CELL * 0.47,
+      // 3 D: front-right bottom (valley tip)
+      CELL * 0.47,
+      -CELL * 0.47,
+      CELL * 0.47,
+      // 4 E: back-left top
+      -CELL * 0.47,
+      CELL * 0.47,
+      -CELL * 0.47,
+      // 5 F: back-right top
+      CELL * 0.47,
+      CELL * 0.47,
+      -CELL * 0.47,
+      // 6 G: front-left top
+      -CELL * 0.47,
+      CELL * 0.47,
+      CELL * 0.47,
     ]);
     const roofValleyIndices = [
+      // bottom quad
       0,
       1,
-      3, // slope face (x side)
+      3,
       0,
       3,
-      2, // slope face (z side)
+      2,
+      // left square face
       0,
       2,
-      1, // inner diagonal face
-      1,
-      2,
-      3, // top
+      6,
       0,
-      1,
-      4, // lower right-triangle filler (x side underside)
+      6,
+      4,
+      // back square face
       0,
       4,
-      2, // lower right-triangle filler (z side underside)
+      5,
+      0,
+      5,
+      1,
+      // front right triangle face
+      2,
+      6,
+      3,
+      // right triangle face
+      1,
+      5,
+      3,
+      // top pitch triangles meeting at valley seam (E -> D)
+      4,
+      6,
+      3,
+      4,
+      3,
+      5,
     ];
     roofValleyGeometry.setAttribute(
       "position",
@@ -1259,7 +1293,9 @@ export default function BlockBuilder() {
 
     const shapeCenterYOffsetByShape = {};
     const shapeAnchorLiftByShape = {
-      roofFlat: CELL,
+      // Flat roof is 0.24 tall; lift by 0.70 so its top lands at the same
+      // world height as the pitched roof peak/top of a standard block cell.
+      roofFlat: CELL * 0.7,
       roofRounded: CELL,
     };
     Object.entries(geometryCache).forEach(([shape, geometry]) => {
