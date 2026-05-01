@@ -215,6 +215,7 @@ export default function BlockBuilder() {
     requiredGridSize: MIN_GRID_SIZE,
     requiredGridHeight: MIN_GRID_HEIGHT,
   }));
+  const getLiveBuildSnapshotRef = useRef(() => null);
   const buildSnapshotRef = useRef(null);
   const hasLoadedItemNamesRef = useRef(false);
 
@@ -236,6 +237,13 @@ export default function BlockBuilder() {
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isExportSummaryOpen, setIsExportSummaryOpen] = useState(false);
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authUser, setAuthUser] = useState(null);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authMessage, setAuthMessage] = useState("");
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   const getMinimumGridSize = () => {
     const extents = getBuildExtentsRef.current();
@@ -358,6 +366,39 @@ export default function BlockBuilder() {
     );
   }, [itemNameMap]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadSession = async () => {
+      try {
+        const response = await fetch("/api/auth/session", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await response.json().catch(() => null);
+        if (cancelled) return;
+
+        if (!response.ok || !data?.user) {
+          setAuthUser(null);
+          return;
+        }
+
+        setAuthUser(data.user);
+      } catch (error) {
+        if (!cancelled) {
+          setAuthUser(null);
+        }
+      }
+    };
+
+    loadSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const getItemDisplayName = (item) => {
     const savedName = itemNameMap[item.id];
     if (typeof savedName !== "string") return item.name;
@@ -430,6 +471,137 @@ export default function BlockBuilder() {
     setGridHeight((prev) =>
       Math.max(minimum, Math.min(MAX_GRID_HEIGHT, prev + delta)),
     );
+  };
+
+  const runAuthAction = async (mode) => {
+    if (authBusy) return;
+
+    const email = authEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      setAuthMessage("Enter a valid email address.");
+      return;
+    }
+
+    if (authPassword.length < 6) {
+      setAuthMessage("Password must be at least 6 characters.");
+      return;
+    }
+
+    setAuthBusy(true);
+    setAuthMessage("");
+
+    try {
+      const endpoint = mode === "register" ? "register" : "login";
+      const response = await fetch(`/api/auth/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password: authPassword,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.user) {
+        setAuthMessage(data?.error || "Unable to authenticate.");
+        return;
+      }
+
+      setAuthUser(data.user);
+      setAuthPassword("");
+      setAuthMessage(
+        mode === "register" ? "Account created." : "Logged in successfully.",
+      );
+    } catch (error) {
+      setAuthMessage("Unable to authenticate right now.");
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (authBusy) return;
+
+    setAuthBusy(true);
+    setAuthMessage("");
+
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setAuthUser(null);
+      setAuthPassword("");
+      setAuthMessage("Logged out.");
+    } catch (error) {
+      setAuthMessage("Unable to log out right now.");
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const saveCurrentBuild = async () => {
+    if (!authUser) {
+      setSaveMessage("Log in to save your build.");
+      return;
+    }
+
+    if (saveBusy) return;
+
+    const liveSnapshot = getLiveBuildSnapshotRef.current?.();
+    if (!liveSnapshot) {
+      setSaveMessage("Builder is still initializing. Try again in a second.");
+      return;
+    }
+
+    const defaultName = `Build ${new Date().toLocaleString()}`;
+    const chosenName = window.prompt("Project name", defaultName);
+    if (chosenName === null) return;
+
+    const trimmedName = chosenName.trim();
+    if (!trimmedName) {
+      setSaveMessage("Project name is required.");
+      return;
+    }
+
+    setSaveBusy(true);
+    setSaveMessage("");
+
+    try {
+      const response = await fetch("/api/projects/save", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          totalBlocks: total,
+          builderState: {
+            version: 1,
+            gridSize,
+            gridHeight,
+            currentLayer,
+            roofRotation,
+            wallDimensions,
+            counts,
+            itemNameMap,
+            snapshot: liveSnapshot,
+          },
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.ok) {
+        setSaveMessage(data?.error || "Unable to save build.");
+        return;
+      }
+
+      setSaveMessage(`Saved "${data.project?.name || trimmedName}".`);
+      closeMobileMenuIfNeeded();
+    } catch (error) {
+      setSaveMessage("Unable to save build right now.");
+    } finally {
+      setSaveBusy(false);
+    }
   };
 
   const rotateRoofSelection = useCallback(() => {
@@ -847,6 +1019,7 @@ export default function BlockBuilder() {
 
       return { groupedPlacements, singleCells };
     };
+    getLiveBuildSnapshotRef.current = buildSnapshot;
 
     const clearPlacementById = (placementId) => {
       const placement = placementMap[placementId];
@@ -1204,6 +1377,7 @@ export default function BlockBuilder() {
       controls.dispose();
 
       buildSnapshotRef.current = buildSnapshot();
+      getLiveBuildSnapshotRef.current = () => null;
       getBuildExtentsRef.current = () => ({
         hasBlocks: false,
         requiredGridSize: MIN_GRID_SIZE,
@@ -1600,6 +1774,74 @@ export default function BlockBuilder() {
             </div>
           </div>
 
+          <div className='border-b border-[#3a3a5c] px-2 py-2'>
+            <h2 className='mb-2 text-[12px] uppercase tracking-[0.2em] text-[#666]'>
+              Account
+            </h2>
+
+            {authUser ? (
+              <div className='space-y-2'>
+                <p className='text-[13px] tracking-[0.08em] text-[#9fb0d6]'>
+                  Logged in as{" "}
+                  <span className='font-semibold text-[#d9e4ff]'>
+                    {authUser.email}
+                  </span>
+                </p>
+                <button
+                  className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[12px] tracking-[0.1em] text-[#c5d4ff] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
+                  disabled={authBusy}
+                  onClick={handleLogout}
+                  type='button'
+                >
+                  {authBusy ? "LOGGING OUT..." : "LOG OUT"}
+                </button>
+              </div>
+            ) : (
+              <div className='space-y-2'>
+                <input
+                  autoComplete='email'
+                  className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] text-[#dce7ff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
+                  onChange={(event) => setAuthEmail(event.target.value)}
+                  placeholder='Email'
+                  type='email'
+                  value={authEmail}
+                />
+                <input
+                  autoComplete='current-password'
+                  className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[13px] text-[#dce7ff] outline-none transition focus:border-[#a0c4ff] focus:bg-white/10'
+                  onChange={(event) => setAuthPassword(event.target.value)}
+                  placeholder='Password'
+                  type='password'
+                  value={authPassword}
+                />
+                <div className='grid grid-cols-2 gap-1'>
+                  <button
+                    className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[12px] tracking-[0.1em] text-[#c5d4ff] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
+                    disabled={authBusy}
+                    onClick={() => runAuthAction("login")}
+                    type='button'
+                  >
+                    {authBusy ? "WAIT..." : "LOG IN"}
+                  </button>
+                  <button
+                    className='rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[12px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60'
+                    disabled={authBusy}
+                    onClick={() => runAuthAction("register")}
+                    type='button'
+                  >
+                    {authBusy ? "WAIT..." : "SIGN UP"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {authMessage ? (
+              <p className='mt-2 text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
+                {authMessage}
+              </p>
+            ) : null}
+          </div>
+
           <div
             className={`px-2 pb-1 pt-2 lg:flex-1 lg:max-h-none ${
               showMobileOverlayMenu
@@ -1668,6 +1910,20 @@ export default function BlockBuilder() {
               </span>
             </div>
           </div>
+
+          <button
+            className='mx-2 mt-2 rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[13px] tracking-[0.1em] text-[#a0c4ff] transition-all hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60 lg:text-[12px]'
+            disabled={!authUser || saveBusy}
+            onClick={saveCurrentBuild}
+            type='button'
+          >
+            {saveBusy ? "SAVING..." : authUser ? "SAVE BUILD" : "LOG IN TO SAVE"}
+          </button>
+          {saveMessage ? (
+            <p className='mx-2 mt-1 text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
+              {saveMessage}
+            </p>
+          ) : null}
 
           <button
             className='mx-2 mt-2 rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[13px] tracking-[0.1em] text-[#a0c4ff] transition-all hover:bg-[rgba(160,196,255,.16)] lg:text-[12px]'
