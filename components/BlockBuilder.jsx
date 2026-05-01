@@ -388,6 +388,7 @@ export default function BlockBuilder() {
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isExportSummaryOpen, setIsExportSummaryOpen] = useState(false);
+  const [exportSummaryScreenshot, setExportSummaryScreenshot] = useState("");
   const [isAccountPanelOpen, setIsAccountPanelOpen] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -419,6 +420,20 @@ export default function BlockBuilder() {
     if (!isMobileViewport) return;
     setIsMobileMenuOpen(false);
   };
+
+  const captureExportSummaryScreenshot = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || typeof canvas.toDataURL !== "function") {
+      return "";
+    }
+
+    try {
+      return canvas.toDataURL("image/png");
+    } catch (error) {
+      console.error("Unable to capture export screenshot:", error);
+      return "";
+    }
+  }, []);
 
   useEffect(() => {
     const block = BUILDER_ITEM_MAP.get(selectedBlockId);
@@ -1014,7 +1029,11 @@ export default function BlockBuilder() {
     const placementMap = {};
     let placementCounter = 0;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      preserveDrawingBuffer: true,
+    });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1941,6 +1960,93 @@ export default function BlockBuilder() {
                     {saveMessage}
                   </p>
                 ) : null}
+
+                <div className='rounded border border-[#3a3a5c] bg-[rgba(255,255,255,0.02)] p-2'>
+                  <div className='mb-2 flex items-center justify-between gap-2'>
+                    <h2 className='text-[12px] uppercase tracking-[0.14em] text-[#7f8bb0]'>
+                      My Saved Builds
+                    </h2>
+                    <button
+                      className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.1em] text-[#9fb0d6] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
+                      disabled={
+                        !authUser ||
+                        savedProjectsBusy ||
+                        Boolean(savedProjectLoadId) ||
+                        Boolean(savedProjectDeleteId)
+                      }
+                      onClick={() => fetchSavedProjects()}
+                      type='button'
+                    >
+                      {savedProjectsBusy ? "LOADING..." : "REFRESH"}
+                    </button>
+                  </div>
+
+                  {!authUser ? (
+                    <p className='text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
+                      Log in to view your saved builds.
+                    </p>
+                  ) : savedProjects.length === 0 ? (
+                    <p className='text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
+                      No saved builds yet.
+                    </p>
+                  ) : (
+                    <div className='max-h-[20dvh] space-y-2 overflow-y-auto pr-1'>
+                      {savedProjects.map((project) => (
+                        <div
+                          className='rounded border border-[#2f3555] bg-white/5 p-2'
+                          key={project.id}
+                        >
+                          <p
+                            className='truncate text-[13px] font-semibold tracking-[0.06em] text-[#d9e4ff]'
+                            title={project.name}
+                          >
+                            {project.name}
+                          </p>
+                          <p className='mt-1 text-[11px] tracking-[0.08em] text-[#7f8bb0]'>
+                            {project.totalBlocks} blocks •{" "}
+                            {formatSavedDate(project.updatedAt)}
+                          </p>
+                          <div className='mt-2 grid grid-cols-2 gap-1'>
+                            <button
+                              className='rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60'
+                              disabled={
+                                saveBusy ||
+                                Boolean(savedProjectDeleteId) ||
+                                Boolean(savedProjectLoadId)
+                              }
+                              onClick={() => loadSavedProject(project.id)}
+                              type='button'
+                            >
+                              {savedProjectLoadId === project.id
+                                ? "LOADING..."
+                                : "LOAD"}
+                            </button>
+                            <button
+                              className='rounded border border-[#5a2a2a] bg-[rgba(255,80,80,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#ff9090] transition hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white disabled:cursor-not-allowed disabled:opacity-60'
+                              disabled={
+                                saveBusy ||
+                                Boolean(savedProjectLoadId) ||
+                                Boolean(savedProjectDeleteId)
+                              }
+                              onClick={() => deleteSavedProject(project)}
+                              type='button'
+                            >
+                              {savedProjectDeleteId === project.id
+                                ? "DELETING..."
+                                : "DELETE"}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {savedProjectsMessage ? (
+                    <p className='mt-2 text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
+                      {savedProjectsMessage}
+                    </p>
+                  ) : null}
+                </div>
               </div>
             ) : null}
           </div>
@@ -2269,96 +2375,10 @@ export default function BlockBuilder() {
             </div>
           </div>
 
-          <div className='mx-2 mt-2 rounded border border-[#3a3a5c] bg-[rgba(255,255,255,0.02)] p-2'>
-            <div className='mb-2 flex items-center justify-between gap-2'>
-              <h2 className='text-[12px] uppercase tracking-[0.14em] text-[#7f8bb0]'>
-                My Saved Builds
-              </h2>
-              <button
-                className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.1em] text-[#9fb0d6] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60'
-                disabled={
-                  !authUser ||
-                  savedProjectsBusy ||
-                  Boolean(savedProjectLoadId) ||
-                  Boolean(savedProjectDeleteId)
-                }
-                onClick={() => fetchSavedProjects()}
-                type='button'
-              >
-                {savedProjectsBusy ? "LOADING..." : "REFRESH"}
-              </button>
-            </div>
-
-            {!authUser ? (
-              <p className='text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
-                Log in to view your saved builds.
-              </p>
-            ) : savedProjects.length === 0 ? (
-              <p className='text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
-                No saved builds yet.
-              </p>
-            ) : (
-              <div className='max-h-[20dvh] space-y-2 overflow-y-auto pr-1'>
-                {savedProjects.map((project) => (
-                  <div
-                    className='rounded border border-[#2f3555] bg-white/5 p-2'
-                    key={project.id}
-                  >
-                    <p
-                      className='truncate text-[13px] font-semibold tracking-[0.06em] text-[#d9e4ff]'
-                      title={project.name}
-                    >
-                      {project.name}
-                    </p>
-                    <p className='mt-1 text-[11px] tracking-[0.08em] text-[#7f8bb0]'>
-                      {project.totalBlocks} blocks •{" "}
-                      {formatSavedDate(project.updatedAt)}
-                    </p>
-                    <div className='mt-2 grid grid-cols-2 gap-1'>
-                      <button
-                        className='rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)] disabled:cursor-not-allowed disabled:opacity-60'
-                        disabled={
-                          saveBusy ||
-                          Boolean(savedProjectDeleteId) ||
-                          Boolean(savedProjectLoadId)
-                        }
-                        onClick={() => loadSavedProject(project.id)}
-                        type='button'
-                      >
-                        {savedProjectLoadId === project.id
-                          ? "LOADING..."
-                          : "LOAD"}
-                      </button>
-                      <button
-                        className='rounded border border-[#5a2a2a] bg-[rgba(255,80,80,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#ff9090] transition hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white disabled:cursor-not-allowed disabled:opacity-60'
-                        disabled={
-                          saveBusy ||
-                          Boolean(savedProjectLoadId) ||
-                          Boolean(savedProjectDeleteId)
-                        }
-                        onClick={() => deleteSavedProject(project)}
-                        type='button'
-                      >
-                        {savedProjectDeleteId === project.id
-                          ? "DELETING..."
-                          : "DELETE"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {savedProjectsMessage ? (
-              <p className='mt-2 text-[12px] tracking-[0.08em] text-[#8fb0d9]'>
-                {savedProjectsMessage}
-              </p>
-            ) : null}
-          </div>
-
           <button
             className='mx-2 mt-2 rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[13px] tracking-[0.1em] text-[#a0c4ff] transition-all hover:bg-[rgba(160,196,255,.16)] lg:text-[12px]'
             onClick={() => {
+              setExportSummaryScreenshot(captureExportSummaryScreenshot());
               setIsExportSummaryOpen(true);
               closeMobileMenuIfNeeded();
             }}
@@ -2401,6 +2421,20 @@ export default function BlockBuilder() {
             </div>
 
             <div className='max-h-[62dvh] overflow-y-auto px-4 py-3'>
+              {exportSummaryScreenshot ? (
+                <div className='mb-3 overflow-hidden rounded-lg border border-[#2f3555] bg-black/30'>
+                  <img
+                    alt='Builder screenshot'
+                    className='h-auto w-full object-contain'
+                    src={exportSummaryScreenshot}
+                  />
+                </div>
+              ) : (
+                <p className='mb-3 text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
+                  Screenshot unavailable for this export.
+                </p>
+              )}
+
               {exportSummarySections.length === 0 ? (
                 <p className='text-[14px] text-[#9ba9cb]'>
                   No blocks placed yet.

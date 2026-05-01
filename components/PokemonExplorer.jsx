@@ -256,7 +256,7 @@ export function PokemonExplorer({ dataset }) {
       ) : null}
 
       <div className='grid gap-3 rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.65)] p-3 md:grid-cols-2 xl:grid-cols-3'>
-        {filtered.map((pokemon) => (
+        {filtered.map((pokemon) =>
           (() => {
             const cardKey = `${pokemon.number}-${pokemon.name}`;
             const isExpandedOnMobile = Boolean(expandedMobileCards[cardKey]);
@@ -333,7 +333,9 @@ export function PokemonExplorer({ dataset }) {
 
                     {pokemon.meta?.rarity ? (
                       <div className='mt-1 flex items-center gap-2 text-sm text-[#a9a9c2]'>
-                        <span className='font-semibold text-[#999]'>Rarity:</span>
+                        <span className='font-semibold text-[#999]'>
+                          Rarity:
+                        </span>
                         <span
                           className={`${CHIP_BASE_CLASS} ${chipTone(pokemon.meta.rarity, RARITY_CHIP_CLASSES)}`}
                         >
@@ -343,153 +345,158 @@ export function PokemonExplorer({ dataset }) {
                     ) : null}
 
                     <div className='mt-3 space-y-2'>
-              <div>
-                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
-                  Favorites
-                </p>
-                {pokemon.favorites.length > 0 ? (
-                  <div className='mt-1 flex flex-wrap gap-1'>
-                    {pokemon.favorites.map((favoriteName, index) => (
-                      <Link
-                        key={`${pokemon.number}-${pokemon.name}-favorite-${favoriteName}-${index}`}
-                        className={`${CHIP_BASE_CLASS} ${chipTone(favoriteName, FAVORITE_CHIP_CLASSES)} transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#a0c4ff]/60`}
-                        href={`/items?favorite=${encodeURIComponent(favoriteName)}`}
-                      >
-                        {favoriteName}
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className='text-sm text-[#666]'>-</p>
-                )}
-              </div>
+                      <div>
+                        <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                          Favorites
+                          <span className='ml-1 text-xs font-normal tracking-[0.02em] text-[#666]'>
+                            (tappable to filter items)
+                          </span>
+                        </p>
+                        {pokemon.favorites.length > 0 ? (
+                          <div className='mt-1 flex flex-wrap gap-1'>
+                            {pokemon.favorites.map((favoriteName, index) => (
+                              <Link
+                                key={`${pokemon.number}-${pokemon.name}-favorite-${favoriteName}-${index}`}
+                                className={`${CHIP_BASE_CLASS} ${chipTone(favoriteName, FAVORITE_CHIP_CLASSES)} transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#a0c4ff]/60`}
+                                href={`/items?favorite=${encodeURIComponent(favoriteName)}`}
+                              >
+                                {favoriteName}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className='text-sm text-[#666]'>-</p>
+                        )}
+                      </div>
 
-              <div>
-                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
-                  Specialties
-                </p>
-                {Array.isArray(pokemon.meta?.specialtyDetails) &&
-                pokemon.meta.specialtyDetails.length > 0 ? (
-                  <ul className='mt-1 flex flex-wrap gap-1'>
-                    {pokemon.meta.specialtyDetails.map((specialty) => (
-                      <li
-                        key={`${pokemon.number}-${pokemon.name}-${specialty.name}`}
-                      >
-                        <span
-                          className={`${CHIP_BASE_CLASS} ${chipTone(specialty.name, SPECIALTY_CHIP_CLASSES)}`}
-                        >
-                          {specialty.iconUrl ? (
-                            <Image
-                              aria-hidden='true'
-                              className='inline-block h-5 w-5 object-contain align-middle'
-                              src={specialty.iconUrl}
-                              alt=''
-                              width={20}
-                              height={20}
-                              unoptimized
-                            />
-                          ) : null}
-                          {specialty.name}
-                          {specialty.name.toLowerCase() === "litter" &&
-                          specialty.litterItemIconUrl ? (
-                            <>
-                              <span className='mx-1 text-[#666]'>|</span>
-                              <Image
-                                aria-hidden='true'
-                                className='inline-block h-5 w-5 object-contain align-middle'
-                                src={specialty.litterItemIconUrl}
-                                alt=''
-                                width={20}
-                                height={20}
-                                unoptimized
-                              />
-                              {specialty.litterItemName ?? "Drop"}
-                            </>
-                          ) : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : pokemon.specialties.length > 0 ? (
-                  <div className='mt-1 flex flex-wrap gap-1'>
-                    {pokemon.specialties.map((specialtyName) => (
-                      <span
-                        key={`${pokemon.number}-${pokemon.name}-specialty-${specialtyName}`}
-                        className={`${CHIP_BASE_CLASS} ${chipTone(specialtyName, SPECIALTY_CHIP_CLASSES)}`}
-                      >
+                      <div>
+                        <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                          Specialties
+                        </p>
+                        {Array.isArray(pokemon.meta?.specialtyDetails) &&
+                        pokemon.meta.specialtyDetails.length > 0 ? (
+                          <ul className='mt-1 flex flex-wrap gap-1'>
+                            {pokemon.meta.specialtyDetails.map((specialty) => (
+                              <li
+                                key={`${pokemon.number}-${pokemon.name}-${specialty.name}`}
+                              >
+                                <span
+                                  className={`${CHIP_BASE_CLASS} ${chipTone(specialty.name, SPECIALTY_CHIP_CLASSES)}`}
+                                >
+                                  {specialty.iconUrl ? (
+                                    <Image
+                                      aria-hidden='true'
+                                      className='inline-block h-5 w-5 object-contain align-middle'
+                                      src={specialty.iconUrl}
+                                      alt=''
+                                      width={20}
+                                      height={20}
+                                      unoptimized
+                                    />
+                                  ) : null}
+                                  {specialty.name}
+                                  {specialty.name.toLowerCase() === "litter" &&
+                                  specialty.litterItemIconUrl ? (
+                                    <>
+                                      <span className='mx-1 text-[#666]'>
+                                        |
+                                      </span>
+                                      <Image
+                                        aria-hidden='true'
+                                        className='inline-block h-5 w-5 object-contain align-middle'
+                                        src={specialty.litterItemIconUrl}
+                                        alt=''
+                                        width={20}
+                                        height={20}
+                                        unoptimized
+                                      />
+                                      {specialty.litterItemName ?? "Drop"}
+                                    </>
+                                  ) : null}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : pokemon.specialties.length > 0 ? (
+                          <div className='mt-1 flex flex-wrap gap-1'>
+                            {pokemon.specialties.map((specialtyName) => (
+                              <span
+                                key={`${pokemon.number}-${pokemon.name}-specialty-${specialtyName}`}
+                                className={`${CHIP_BASE_CLASS} ${chipTone(specialtyName, SPECIALTY_CHIP_CLASSES)}`}
+                              >
+                                {(() => {
+                                  const specialtyDetail =
+                                    pokemon.meta?.specialtyDetails.find(
+                                      (detail) => detail.name === specialtyName,
+                                    );
+                                  return specialtyDetail?.iconUrl ? (
+                                    <Image
+                                      aria-hidden='true'
+                                      className='inline-block h-5 w-5 object-contain align-middle'
+                                      src={specialtyDetail.iconUrl}
+                                      alt=''
+                                      width={20}
+                                      height={20}
+                                      unoptimized
+                                    />
+                                  ) : null;
+                                })()}
+                                {specialtyName}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className='text-sm text-[#666]'>-</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                          Available Areas
+                        </p>
                         {(() => {
-                          const specialtyDetail =
-                            pokemon.meta?.specialtyDetails.find(
-                              (detail) => detail.name === specialtyName,
-                            );
-                          return specialtyDetail?.iconUrl ? (
-                            <Image
-                              aria-hidden='true'
-                              className='inline-block h-5 w-5 object-contain align-middle'
-                              src={specialtyDetail.iconUrl}
-                              alt=''
-                              width={20}
-                              height={20}
-                              unoptimized
-                            />
-                          ) : null;
+                          const areaEntries =
+                            pokemon.meta?.areaDetails &&
+                            pokemon.meta.areaDetails.length > 0
+                              ? pokemon.meta.areaDetails
+                              : pokemon.availableAreas.map((areaName) => ({
+                                  name: areaName,
+                                }));
+
+                          return areaEntries.length > 0 ? (
+                            <div className='mt-1 flex flex-wrap gap-1'>
+                              {areaEntries.map((area) => (
+                                <span
+                                  key={`${pokemon.number}-${pokemon.name}-area-${area.name}`}
+                                  className={`${CHIP_BASE_CLASS} ${chipTone(area.name, AREA_CHIP_CLASSES)}`}
+                                >
+                                  {area.iconUrl ? (
+                                    <Image
+                                      aria-hidden='true'
+                                      className='inline-block h-5 w-5 object-contain align-middle'
+                                      src={area.iconUrl}
+                                      alt=''
+                                      width={20}
+                                      height={20}
+                                      unoptimized
+                                    />
+                                  ) : null}
+                                  {area.name}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className='text-sm text-[#666]'>-</p>
+                          );
                         })()}
-                        {specialtyName}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className='text-sm text-[#666]'>-</p>
-                )}
-              </div>
-
-              <div>
-                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
-                  Available Areas
-                </p>
-                {(() => {
-                  const areaEntries =
-                    pokemon.meta?.areaDetails &&
-                    pokemon.meta.areaDetails.length > 0
-                      ? pokemon.meta.areaDetails
-                      : pokemon.availableAreas.map((areaName) => ({
-                          name: areaName,
-                        }));
-
-                  return areaEntries.length > 0 ? (
-                    <div className='mt-1 flex flex-wrap gap-1'>
-                      {areaEntries.map((area) => (
-                        <span
-                          key={`${pokemon.number}-${pokemon.name}-area-${area.name}`}
-                          className={`${CHIP_BASE_CLASS} ${chipTone(area.name, AREA_CHIP_CLASSES)}`}
-                        >
-                          {area.iconUrl ? (
-                            <Image
-                              aria-hidden='true'
-                              className='inline-block h-5 w-5 object-contain align-middle'
-                              src={area.iconUrl}
-                              alt=''
-                              width={20}
-                              height={20}
-                              unoptimized
-                            />
-                          ) : null}
-                          {area.name}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className='text-sm text-[#666]'>-</p>
-                  );
-                })()}
-              </div>
+                      </div>
                     </div>
                   </>
                 ) : null}
               </article>
             );
-          })()
-        ))}
+          })(),
+        )}
       </div>
     </section>
   );
