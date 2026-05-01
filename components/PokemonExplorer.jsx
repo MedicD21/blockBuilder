@@ -83,6 +83,7 @@ export function PokemonExplorer({ dataset }) {
   const [location, setLocation] = useState("all");
   const [favorite, setFavorite] = useState("all");
   const [rarity, setRarity] = useState("all");
+  const [eventType, setEventType] = useState("all");
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [expandedMobileCards, setExpandedMobileCards] = useState({});
 
@@ -136,6 +137,7 @@ export function PokemonExplorer({ dataset }) {
         q.length === 0 ||
         pokemon.name.toLowerCase().includes(q) ||
         pokemon.number.toLowerCase().includes(q) ||
+        (pokemon.meta?.eventNumber || "").toLowerCase().includes(q) ||
         pokemon.favorites.some((f) => f.toLowerCase().includes(q)) ||
         pokemon.specialties.some((s) => s.toLowerCase().includes(q));
 
@@ -145,15 +147,27 @@ export function PokemonExplorer({ dataset }) {
       const inFavorite =
         favorite === "all" || pokemon.favorites.includes(favorite);
       const inRarity = rarity === "all" || pokemon.meta?.rarity === rarity;
+      const isEventPokemon = Boolean(pokemon.meta?.isEventPokemon);
+      const inEventType =
+        eventType === "all" ||
+        (eventType === "event" && isEventPokemon) ||
+        (eventType === "standard" && !isEventPokemon);
 
-      return inQuery && inHabitat && inLocation && inFavorite && inRarity;
+      return (
+        inQuery &&
+        inHabitat &&
+        inLocation &&
+        inFavorite &&
+        inRarity &&
+        inEventType
+      );
     });
-  }, [dataset.pokemon, favorite, habitat, location, query, rarity]);
+  }, [dataset.pokemon, eventType, favorite, habitat, location, query, rarity]);
 
   return (
     <section className='space-y-5'>
       <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[0_8px_30px_rgba(0,0,0,.25)] md:p-5'>
-        <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'>
+        <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6'>
           <label className='space-y-1 text-sm'>
             <span className='text-[16px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
               Search
@@ -237,6 +251,21 @@ export function PokemonExplorer({ dataset }) {
               ))}
             </select>
           </label>
+
+          <label className='space-y-1 text-sm'>
+            <span className='text-[16px] font-semibold uppercase tracking-[0.12em] text-[#999]'>
+              Pokemon Type
+            </span>
+            <select
+              value={eventType}
+              onChange={(event) => setEventType(event.target.value)}
+              className={FILTER_INPUT_CLASS}
+            >
+              <option value='all'>All</option>
+              <option value='standard'>Standard</option>
+              <option value='event'>Event</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -261,12 +290,16 @@ export function PokemonExplorer({ dataset }) {
             const cardKey = `${pokemon.number}-${pokemon.name}`;
             const isExpandedOnMobile = Boolean(expandedMobileCards[cardKey]);
             const showCardDetails = !isMobileViewport || isExpandedOnMobile;
+            const isEventPokemon = Boolean(pokemon.meta?.isEventPokemon);
+            const displayNumber = isEventPokemon
+              ? pokemon.meta?.eventNumber || `E-${pokemon.number}`
+              : `#${pokemon.number}`;
 
             const summaryContent = (
               <>
                 <div className='mb-2 flex items-center justify-between gap-2'>
                   <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
-                    #{pokemon.number}
+                    {displayNumber}
                   </span>
                   {isMobileViewport ? (
                     <span className='text-[12px] font-semibold tracking-[0.08em] text-[#8ca2d0]'>

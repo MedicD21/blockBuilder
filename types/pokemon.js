@@ -25,6 +25,8 @@
  * @property {string=} rarity
  * @property {string[]} types
  * @property {string=} spriteUrl
+ * @property {boolean=} isEventPokemon
+ * @property {string=} eventNumber
  * @property {string[]} habitatIds
  * @property {PokemonAreaDetail[]} areaDetails
  * @property {PokemonFavoriteDetail[]} favoriteDetails

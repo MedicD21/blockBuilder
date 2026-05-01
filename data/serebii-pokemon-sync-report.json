@@ -1,0 +1,269 @@
+{
+  "generatedAt": "2026-05-01T21:46:18.326Z",
+  "sourceUrls": {
+    "available": "https://serebii.net/pokemonpokopia/availablepokemon.shtml",
+    "event": "https://serebii.net/pokemonpokopia/eventpokedex.shtml"
+  },
+  "totals": {
+    "availableRows": 308,
+    "eventRows": 4,
+    "combinedRows": 312,
+    "datasetCount": 312,
+    "updatedCount": 312,
+    "renamedCount": 0,
+    "appendedCount": 0
+  },
+  "appendedStandardRows": [],
+  "appendedEventRows": [],
+  "unmatchedStandardRows": [],
+  "keyEntries": [
+    {
+      "number": "041",
+      "name": "Professor Tangrowth",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/465-professortangrowth.png",
+      "specialties": [
+        "Appraise"
+      ]
+    },
+    {
+      "number": "059",
+      "name": "Shellos (West Sea)",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/422.png",
+      "specialties": [
+        "Water"
+      ]
+    },
+    {
+      "number": "059",
+      "name": "Shellos East Sea",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/422-shelloseastsea.png",
+      "specialties": [
+        "Water"
+      ]
+    },
+    {
+      "number": "060",
+      "name": "Gastrodon (West Sea)",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/423.png",
+      "specialties": [
+        "Water",
+        "Trade"
+      ]
+    },
+    {
+      "number": "060",
+      "name": "Gastrodon East Sea",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/423-gastrodoneastsea.png",
+      "specialties": [
+        "Water",
+        "Trade"
+      ]
+    },
+    {
+      "number": "079",
+      "name": "Peakychu",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/025-peakychu.png",
+      "specialties": [
+        "Illuminate"
+      ]
+    },
+    {
+      "number": "108",
+      "name": "Mosslax",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/143-mosslax.png",
+      "specialties": [
+        "Eat"
+      ]
+    },
+    {
+      "number": "117",
+      "name": "Paldean Wooper",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/194-p.png",
+      "specialties": [
+        "Litter"
+      ]
+    },
+    {
+      "number": "119",
+      "name": "Smearguru",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/235-smearguru.png",
+      "specialties": [
+        "Paint"
+      ]
+    },
+    {
+      "number": "145",
+      "name": "Tatsugiri Curly Form",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/978-tatsugiricurlyform.png",
+      "specialties": [
+        "Trade"
+      ]
+    },
+    {
+      "number": "145",
+      "name": "Tatsugiri Droopy Form",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/978-tatsugiridroopyform.png",
+      "specialties": [
+        "Trade"
+      ]
+    },
+    {
+      "number": "145",
+      "name": "Tatsugiri Stretchy Form",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/978-tatsugiristretchyform.png",
+      "specialties": [
+        "Trade"
+      ]
+    },
+    {
+      "number": "182",
+      "name": "DJ Rotom",
+      "isEventPokemon": false,
+      "eventNumber": null,
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/479-stereorotom.png",
+      "specialties": [
+        "DJ"
+      ]
+    },
+    {
+      "number": "001",
+      "name": "Hoppip",
+      "isEventPokemon": true,
+      "eventNumber": "E-001",
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/187.png",
+      "specialties": [
+        "Grow"
+      ]
+    },
+    {
+      "number": "002",
+      "name": "Skiploom",
+      "isEventPokemon": true,
+      "eventNumber": "E-002",
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/188.png",
+      "specialties": [
+        "Grow"
+      ]
+    },
+    {
+      "number": "003",
+      "name": "Jumpluff",
+      "isEventPokemon": true,
+      "eventNumber": "E-003",
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/189.png",
+      "specialties": [
+        "Grow",
+        "Litter"
+      ]
+    },
+    {
+      "number": "004",
+      "name": "Sableye",
+      "isEventPokemon": true,
+      "eventNumber": "E-004",
+      "spriteUrl": "https://serebii.net/pokemonpokopia/pokemon/small/302.png",
+      "specialties": [
+        "Search"
+      ]
+    }
+  ],
+  "uniqueAudit": [
+    {
+      "uniqueName": "Professor Tangrowth",
+      "uniqueNumber": "041",
+      "uniquePrimaryLocation": "Withered Wastelands",
+      "uniqueSpecialties": [
+        "Appraise"
+      ],
+      "baseName": "Tangrowth",
+      "baseNumber": "041",
+      "basePrimaryLocation": "Cloud Island",
+      "baseSpecialties": [
+        "Grow",
+        "Litter"
+      ],
+      "sameNumber": true
+    },
+    {
+      "uniqueName": "Peakychu",
+      "uniqueNumber": "079",
+      "uniquePrimaryLocation": "Withered Wastelands",
+      "uniqueSpecialties": [
+        "Illuminate"
+      ],
+      "baseName": "Pikachu",
+      "baseNumber": "079",
+      "basePrimaryLocation": "Palette Town",
+      "baseSpecialties": [
+        "Generate"
+      ],
+      "sameNumber": true
+    },
+    {
+      "uniqueName": "Mosslax",
+      "uniqueNumber": "108",
+      "uniquePrimaryLocation": "Withered Wastelands",
+      "uniqueSpecialties": [
+        "Eat"
+      ],
+      "baseName": "Snorlax",
+      "baseNumber": "108",
+      "basePrimaryLocation": "Palette Town",
+      "baseSpecialties": [
+        "Trade",
+        "Bulldoze"
+      ],
+      "sameNumber": true
+    },
+    {
+      "uniqueName": "Smearguru",
+      "uniqueNumber": "119",
+      "uniquePrimaryLocation": "Withered Wastelands",
+      "uniqueSpecialties": [
+        "Paint"
+      ],
+      "baseName": null,
+      "baseNumber": null,
+      "basePrimaryLocation": null,
+      "baseSpecialties": [],
+      "sameNumber": false
+    },
+    {
+      "uniqueName": "DJ Rotom",
+      "uniqueNumber": "182",
+      "uniquePrimaryLocation": "Withered Wastelands",
+      "uniqueSpecialties": [
+        "DJ"
+      ],
+      "baseName": null,
+      "baseNumber": null,
+      "basePrimaryLocation": null,
+      "baseSpecialties": [],
+      "sameNumber": false
+    }
+  ]
+}
