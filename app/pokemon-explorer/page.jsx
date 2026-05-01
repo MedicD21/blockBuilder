@@ -15,7 +15,7 @@ export default function PokemonExplorerPage() {
     <div className='relative min-h-[100dvh] overflow-hidden bg-[#1a1a2e] text-[#e0e0e0]'>
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-0 z-[1] opacity-95'
+        className='pointer-events-none fixed inset-0 z-[1] opacity-95'
       >
         <Particles
           alphaParticles
@@ -35,7 +35,7 @@ export default function PokemonExplorerPage() {
 
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-0 z-[2] opacity-45'
+        className='pointer-events-none fixed inset-0 z-[2] opacity-45'
         style={{
           background:
             "radial-gradient(circle at 20% 20%, rgba(160,196,255,.3), transparent 44%), radial-gradient(circle at 80% 18%, rgba(242,160,103,.24), transparent 40%), linear-gradient(180deg, rgba(10,10,20,.74), rgba(10,10,20,.88))",

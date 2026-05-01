@@ -173,6 +173,25 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      <aside className='site-disclaimer' role='note' aria-label='Project disclaimer'>
+        <p className='site-disclaimer-title'>Disclaimer</p>
+        <p>
+          Unofficial fan project. Not affiliated with Nintendo, Game Freak, Creatures,
+          or The Pokemon Company.
+        </p>
+        <p>
+          Some reference data sourced from{" "}
+          <a
+            href='https://www.serebii.net/pokemonpokopia/items.shtml'
+            rel='noopener noreferrer'
+            target='_blank'
+          >
+            Serebii.net
+          </a>
+          .
+        </p>
+      </aside>
     </main>
   );
 }

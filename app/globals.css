@@ -74,6 +74,47 @@ body {
   white-space: nowrap;
 }
 
+.site-disclaimer {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 64;
+  max-width: 360px;
+  border: 1px solid #3a3a5c;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(10, 10, 20, 0.88);
+  color: #9fb0d6;
+  font-size: 11px;
+  line-height: 1.35;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.site-disclaimer p {
+  margin: 0;
+}
+
+.site-disclaimer p + p {
+  margin-top: 4px;
+}
+
+.site-disclaimer-title {
+  color: #a0c4ff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-disclaimer a {
+  color: #f2a067;
+}
+
+.site-disclaimer a:hover {
+  color: #ffd2ad;
+}
+
 @media (max-width: 767px) {
   .bmc-fixed-button {
     left: 10px;
@@ -96,5 +137,17 @@ body {
 
   .bmc-fixed-text {
     display: none;
+  }
+
+  .site-disclaimer {
+    right: 10px;
+    bottom: 10px;
+    max-width: min(66vw, 280px);
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .site-disclaimer-title {
+    font-size: 11px;
   }
 }
