@@ -73,12 +73,6 @@ export function PokemonExplorerShell({ children, title, activeSection = "directo
             >
               HABITAT DEX
             </Link>
-            <Link
-              className={sectionLinkClass(activeSection === "housing")}
-              href='/pokemon-explorer/housing'
-            >
-              HOUSING
-            </Link>
             <Link className={sectionLinkClass(false)} href='/items'>
               ITEMS ↗
             </Link>

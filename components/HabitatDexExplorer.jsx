@@ -152,7 +152,7 @@ export function HabitatDexExplorer({ habitatDataset }) {
               {habitat.imageUrl ? (
                 <Image
                   alt={habitat.imageAlt || habitat.name}
-                  className='h-24 w-24 rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-1 sm:h-28 sm:w-28'
+                  className='h-24 w-24 rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-1 sm:h-fit sm:w-fit'
                   height={112}
                   src={toPublicImageSrc(habitat.imageUrl)}
                   unoptimized

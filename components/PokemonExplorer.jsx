@@ -337,12 +337,6 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
           >
             HABITAT DEX
           </Link>
-          <Link
-            className='rounded-full border border-[#49a281] bg-[rgba(73,162,129,.12)] px-2 py-1 text-[11px] font-semibold tracking-[0.1em] text-[#f2a067] transition hover:border-[#8ad7b9] hover:bg-[rgba(73,162,129,.26)] hover:text-[#a0c4ff]'
-            href='/pokemon-explorer/housing'
-          >
-            HOUSING
-          </Link>
         </div>
         <p className='text-[14px] tracking-[0.08em] text-[#777]'>
           Showing {filtered.length} of {dataset.count}
