@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "build:items-dataset": "node scripts/build-items-dataset.mjs",
     "sync:habitats": "node scripts/sync-habitats.mjs",
     "sync:favorites": "node scripts/scrape-serebii-favorites.mjs",
     "sync:tag-sprites": "node scripts/scrape-serebii-tag-sprites.mjs"

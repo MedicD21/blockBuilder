@@ -137,7 +137,7 @@ export default function HomePage() {
             >
               <Image
                 alt='Pokopia logo'
-                className='mx-auto h-30 w-30 rounded-2xl border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-2 shadow-[0_20px_65px_rgba(0,0,0,.42)] sm:h-300 sm:w-300 lg:mx-0 lg:h-300 lg:w-300'
+                className='mx-auto h-[120px] w-[120px] rounded-2xl border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-2 shadow-[0_20px_65px_rgba(0,0,0,.42)] sm:h-[220px] sm:w-[220px] lg:mx-0 lg:h-[280px] lg:w-[280px]'
                 height={280}
                 priority
                 src='/images/logo/pokopiaplannerdb.png'

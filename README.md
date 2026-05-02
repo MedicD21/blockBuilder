@@ -52,13 +52,15 @@ vercel env add AUTH_SECRET preview <your-branch> --value "<long-random-secret>" 
 - `npm run build` - production build
 - `npm run start` - run built app
 - `npm run lint` - ESLint
+- `npm run build:items-dataset` - rebuild `data/items-dataset.json` from `public/items.html` + favorite reference markdown
 
 ## Routes
 
 - `/` - homepage
 - `/builder` - 3D block builder (React + Three.js) with login + save
-- `/items` - item browser page (loads `public/items.html`)
+- `/items` - item browser page (reads prebuilt `data/items-dataset.json`)
 - `/pokemon-explorer` - searchable/filterable Pokemon explorer from the export kit
+- `/pokemon-explorer/habitat-dex` - habitat details with spawn cards and icon-based time/weather filters
 
 ## Builder Save
 
@@ -70,4 +72,5 @@ vercel env add AUTH_SECRET preview <your-branch> --value "<long-random-secret>" 
 ## Notes
 
 - Static assets are served from `public/`.
+- Item dataset source files are `public/items.html` and `public/references/Items By Favorite/*`; regenerate JSON after edits with `npm run build:items-dataset`.
 - The original `index.html`, `scripts.js`, and `styles.css` are still present in the repo as legacy references.
