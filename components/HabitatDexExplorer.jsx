@@ -134,7 +134,7 @@ export function HabitatDexExplorer({ habitatDataset }) {
         </p>
       </div>
 
-      <div className='grid gap-3 rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.65)] p-3 lg:grid-cols-3'>
+      <div className='grid gap-3 rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.65)] p-3 lg:grid-cols-2'>
         {filteredHabitats.map((habitat) => (
           <article
             className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-3 shadow-[inset_0_1px_0_rgba(160,196,255,.08)] sm:p-4'
@@ -261,15 +261,16 @@ export function HabitatDexExplorer({ habitatDataset }) {
                             {iconForTime(timeValue) ? (
                               <Image
                                 alt={timeValue}
-                                className='h-4 w-4 rounded-full border border-[#3a3a5c] object-cover'
-                                height={16}
+                                className='h-6 w-6 rounded-full border border-[#3a3a5c] object-cover'
+                                height={40}
                                 src={iconForTime(timeValue)}
                                 unoptimized
-                                width={16}
+                                width={40}
                               />
                             ) : null}
                           </span>
                         ))}
+                        <div className='mx-1 h-6 w-px bg-[#3a3a5c]' />
                         {(pokemon.weather || []).map((weatherValue) => (
                           <span
                             className='inline-flex items-center rounded-full border border-[#3a3a5c] bg-[rgba(255,255,255,.06)] p-0.5'
@@ -279,11 +280,11 @@ export function HabitatDexExplorer({ habitatDataset }) {
                             {iconForWeather(weatherValue) ? (
                               <Image
                                 alt={weatherValue}
-                                className='h-4 w-4 rounded-full border border-[#3a3a5c] object-cover'
-                                height={16}
+                                className='h-6 w-6 rounded-full border border-[#3a3a5c] object-cover'
+                                height={40}
                                 src={iconForWeather(weatherValue)}
                                 unoptimized
-                                width={16}
+                                width={40}
                               />
                             ) : null}
                           </span>
@@ -327,7 +328,10 @@ export function HabitatDexExplorer({ habitatDataset }) {
             <div className='mt-3 flex items-center gap-3'>
               {activePokemonModal.pokemon.spriteUrl ? (
                 <Image
-                  alt={activePokemonModal.pokemon.spriteAlt || activePokemonModal.pokemon.name}
+                  alt={
+                    activePokemonModal.pokemon.spriteAlt ||
+                    activePokemonModal.pokemon.name
+                  }
                   className='h-20 w-20 rounded border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] object-contain p-1'
                   height={80}
                   src={toPublicImageSrc(activePokemonModal.pokemon.spriteUrl)}
@@ -342,24 +346,26 @@ export function HabitatDexExplorer({ habitatDataset }) {
                     Time
                   </p>
                   <div className='mt-1 flex flex-wrap gap-1'>
-                    {(activePokemonModal.pokemon.timeOfDay || []).map((timeValue) => (
-                      <span
-                        className='inline-flex items-center rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.1)] p-0.5'
-                        key={`modal-time-${timeValue}`}
-                        title={`Time: ${timeValue}`}
-                      >
-                        {iconForTime(timeValue) ? (
-                          <Image
-                            alt={timeValue}
-                            className='h-4 w-4 rounded-full border border-[#3a3a5c] object-cover'
-                            height={16}
-                            src={iconForTime(timeValue)}
-                            unoptimized
-                            width={16}
-                          />
-                        ) : null}
-                      </span>
-                    ))}
+                    {(activePokemonModal.pokemon.timeOfDay || []).map(
+                      (timeValue) => (
+                        <span
+                          className='inline-flex items-center rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.1)] p-0.5'
+                          key={`modal-time-${timeValue}`}
+                          title={`Time: ${timeValue}`}
+                        >
+                          {iconForTime(timeValue) ? (
+                            <Image
+                              alt={timeValue}
+                              className='h-4 w-4 rounded-full border border-[#3a3a5c] object-cover'
+                              height={16}
+                              src={iconForTime(timeValue)}
+                              unoptimized
+                              width={16}
+                            />
+                          ) : null}
+                        </span>
+                      ),
+                    )}
                   </div>
                 </div>
 
@@ -368,24 +374,26 @@ export function HabitatDexExplorer({ habitatDataset }) {
                     Weather
                   </p>
                   <div className='mt-1 flex flex-wrap gap-1'>
-                    {(activePokemonModal.pokemon.weather || []).map((weatherValue) => (
-                      <span
-                        className='inline-flex items-center rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.1)] p-0.5'
-                        key={`modal-weather-${weatherValue}`}
-                        title={`Weather: ${weatherValue}`}
-                      >
-                        {iconForWeather(weatherValue) ? (
-                          <Image
-                            alt={weatherValue}
-                            className='h-4 w-4 rounded-full border border-[#3a3a5c] object-cover'
-                            height={16}
-                            src={iconForWeather(weatherValue)}
-                            unoptimized
-                            width={16}
-                          />
-                        ) : null}
-                      </span>
-                    ))}
+                    {(activePokemonModal.pokemon.weather || []).map(
+                      (weatherValue) => (
+                        <span
+                          className='inline-flex items-center rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.1)] p-0.5'
+                          key={`modal-weather-${weatherValue}`}
+                          title={`Weather: ${weatherValue}`}
+                        >
+                          {iconForWeather(weatherValue) ? (
+                            <Image
+                              alt={weatherValue}
+                              className='h-4 w-4 rounded-full border border-[#3a3a5c] object-cover'
+                              height={16}
+                              src={iconForWeather(weatherValue)}
+                              unoptimized
+                              width={16}
+                            />
+                          ) : null}
+                        </span>
+                      ),
+                    )}
                   </div>
                 </div>
               </div>
@@ -396,14 +404,16 @@ export function HabitatDexExplorer({ habitatDataset }) {
                 Locations
               </p>
               <div className='mt-1 flex flex-wrap gap-1'>
-                {(activePokemonModal.pokemon.locations || []).map((location) => (
-                  <span
-                    className='rounded-full border border-[#3a3a5c] bg-[rgba(255,255,255,.06)] px-2 py-0.5 text-[12px] text-[#d7e7ff]'
-                    key={`modal-location-${location}`}
-                  >
-                    {location}
-                  </span>
-                ))}
+                {(activePokemonModal.pokemon.locations || []).map(
+                  (location) => (
+                    <span
+                      className='rounded-full border border-[#3a3a5c] bg-[rgba(255,255,255,.06)] px-2 py-0.5 text-[12px] text-[#d7e7ff]'
+                      key={`modal-location-${location}`}
+                    >
+                      {location}
+                    </span>
+                  ),
+                )}
               </div>
             </div>
           </div>

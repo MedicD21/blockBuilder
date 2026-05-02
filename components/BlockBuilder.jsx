@@ -2268,7 +2268,7 @@ export default function BlockBuilder() {
           ref={wrapRef}
         >
           <canvas className='block h-full w-full' ref={canvasRef} />
-          {!showMobileOverlayMenu ? (
+          {!showMobileOverlayMenu && !isMobileViewport ? (
             <button
               className='absolute right-3 top-3 z-30 rounded-md border border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-3 py-2 text-[12px] font-semibold tracking-[0.1em] text-[#a0c4ff] shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition hover:bg-[rgba(30,30,50,.98)]'
               onClick={rotateSelectedItem}
@@ -2277,20 +2277,65 @@ export default function BlockBuilder() {
               Rotate Item
             </button>
           ) : null}
+
+          {isMobileViewport && !showMobileOverlayMenu ? (
+            <div className='absolute right-2 top-2 z-40 flex w-[152px] flex-col gap-2 rounded-lg border border-[#3a3a5c] bg-[rgba(10,10,20,.95)] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.4)] sm:right-3 sm:top-3'>
+              <button
+                className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] font-semibold tracking-[0.1em] text-[#a0c4ff] transition hover:bg-white/10'
+                onClick={() => setIsMobileMenuOpen(true)}
+                type='button'
+              >
+                MENU
+              </button>
+
+              <button
+                className={`w-full rounded border px-2 py-1 text-[11px] font-semibold tracking-[0.1em] transition ${
+                  eraseMode
+                    ? "border-[#ff5050] bg-[rgba(255,80,80,.2)] text-white"
+                    : "border-[#5a2a2a] bg-[rgba(255,80,80,.08)] text-[#ff9090] hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white"
+                }`}
+                onClick={() => setEraseMode((prev) => !prev)}
+                type='button'
+              >
+                DELETE
+              </button>
+
+              <div className='rounded border border-[#3a3a5c] bg-white/5 px-2 py-1'>
+                <div className='flex items-center justify-between text-[10px] tracking-[0.08em] text-[#8fa3cc]'>
+                  <span>LAYER</span>
+                  <span className='font-semibold text-[#d7e7ff]'>
+                    {currentLayer}/{gridHeight}
+                  </span>
+                </div>
+                <input
+                  aria-label='Layer slider'
+                  className='mt-1 h-2 w-full cursor-pointer accent-[#a0c4ff]'
+                  max={gridHeight}
+                  min={1}
+                  onChange={(event) =>
+                    setCurrentLayer(
+                      clampInteger(event.target.value, 1, gridHeight, currentLayer),
+                    )
+                  }
+                  type='range'
+                  value={currentLayer}
+                />
+              </div>
+
+              <button
+                className='w-full rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] font-semibold tracking-[0.1em] text-[#a0c4ff] transition hover:bg-white/10'
+                onClick={rotateSelectedItem}
+                type='button'
+              >
+                ROTATE
+              </button>
+            </div>
+          ) : null}
+
           <div className='pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#3a3a5c] bg-black/60 px-3 py-1 text-[11px] tracking-[0.1em] text-[#666] sm:text-[12px]'>
             Tap grid to place items
           </div>
         </div>
-
-        {isMobileViewport ? (
-          <button
-            className='fixed bottom-3 left-1/2 z-40 -translate-x-1/2 rounded-full border border-[#3a3a5c] bg-[rgba(10,10,20,.95)] px-4 py-2 text-[12px] font-semibold tracking-[0.1em] text-[#a0c4ff] shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition hover:bg-[rgba(30,30,50,.98)] lg:hidden'
-            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            type='button'
-          >
-            {showMobileOverlayMenu ? "Close Menu" : "Open Menu"}
-          </button>
-        ) : null}
 
         <aside
           className={`${
