@@ -92,6 +92,17 @@ function normalizeHabitatPathKey(detailPath) {
   );
 }
 
+function toPublicImageSrc(src) {
+  if (!src) return "";
+  if (src.startsWith("http://") || src.startsWith("https://")) return src;
+  if (src.startsWith("/")) return src;
+  return `/${src}`;
+}
+
+function toHabitatAnchorId(habitatPathKey) {
+  return habitatPathKey ? `habitat-${habitatPathKey}` : "";
+}
+
 export function PokemonExplorer({ dataset, habitatDataset }) {
   const [query, setQuery] = useState("");
   const [habitat, setHabitat] = useState("all");
@@ -99,38 +110,7 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
   const [favorite, setFavorite] = useState("all");
   const [rarity, setRarity] = useState("all");
   const [eventType, setEventType] = useState("all");
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const [expandedMobileCards, setExpandedMobileCards] = useState({});
-
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const syncViewport = (matches) => {
-      setIsMobileViewport(matches);
-      if (!matches) {
-        setExpandedMobileCards({});
-      }
-    };
-
-    syncViewport(mediaQuery.matches);
-
-    const handleChange = (event) => {
-      syncViewport(event.matches);
-    };
-
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener("change", handleChange);
-      return () => {
-        mediaQuery.removeEventListener("change", handleChange);
-      };
-    }
-
-    mediaQuery.addListener(handleChange);
-    return () => {
-      mediaQuery.removeListener(handleChange);
-    };
-  }, []);
+  const [activePokemonModal, setActivePokemonModal] = useState(null);
 
   const rarityOptions = useMemo(
     () =>
@@ -144,12 +124,21 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
     [dataset.pokemon],
   );
 
-  const habitatNameByPathKey = useMemo(() => {
+  const habitatMetaByPathKey = useMemo(() => {
     const lookup = new Map();
     for (const habitatEntry of habitatDataset?.habitats || []) {
-      const key = normalizeHabitatPathKey(habitatEntry.detailPath);
+      const detailPathKey = normalizeHabitatPathKey(habitatEntry.detailPath);
+      const fallbackKey = normalizeKey(
+        habitatEntry.id || habitatEntry.slug || habitatEntry.name,
+      );
+      const key = detailPathKey || fallbackKey;
       if (!key || lookup.has(key)) continue;
-      lookup.set(key, habitatEntry.name);
+      lookup.set(key, {
+        key,
+        name: habitatEntry.name,
+        anchorId: toHabitatAnchorId(key),
+        imageUrl: toPublicImageSrc(habitatEntry.imageUrl),
+      });
     }
     return lookup;
   }, [habitatDataset?.habitats]);
@@ -163,22 +152,27 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
         ? pokemon.meta.habitatIds
         : [];
       const values = habitatIds
-        .map((habitatId) => habitatNameByPathKey.get(normalizeKey(habitatId)))
+        .map((habitatId) => habitatMetaByPathKey.get(normalizeKey(habitatId)))
         .filter(Boolean);
-      const uniqueValues = Array.from(new Set(values)).sort((a, b) =>
-        a.localeCompare(b),
+      const uniqueValues = Array.from(
+        values.reduce((acc, value) => {
+          if (!acc.has(value.key)) acc.set(value.key, value);
+          return acc;
+        }, new Map()).values(),
+      ).sort((a, b) =>
+        a.name.localeCompare(b.name),
       );
       lookup.set(cardKey, uniqueValues);
     }
 
     return lookup;
-  }, [dataset.pokemon, habitatNameByPathKey]);
+  }, [dataset.pokemon, habitatMetaByPathKey]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return dataset.pokemon.filter((pokemon) => {
-      const pokemonHabitatNames =
+      const pokemonHabitatEntries =
         pokemonHabitatsByCardKey.get(`${pokemon.number}-${pokemon.name}`) || [];
       const inQuery =
         q.length === 0 ||
@@ -187,7 +181,9 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
         (pokemon.meta?.eventNumber || "").toLowerCase().includes(q) ||
         pokemon.favorites.some((f) => f.toLowerCase().includes(q)) ||
         pokemon.specialties.some((s) => s.toLowerCase().includes(q)) ||
-        pokemonHabitatNames.some((entry) => entry.toLowerCase().includes(q));
+        pokemonHabitatEntries.some((entry) =>
+          entry.name.toLowerCase().includes(q),
+        );
 
       const inHabitat = habitat === "all" || pokemon.idealHabitat === habitat;
       const inLocation =
@@ -220,6 +216,36 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
     query,
     rarity,
   ]);
+
+  const isFiltering =
+    query.trim().length > 0 ||
+    habitat !== "all" ||
+    location !== "all" ||
+    favorite !== "all" ||
+    rarity !== "all" ||
+    eventType !== "all";
+
+  const resetFilters = () => {
+    setQuery("");
+    setHabitat("all");
+    setLocation("all");
+    setFavorite("all");
+    setRarity("all");
+    setEventType("all");
+  };
+
+  useEffect(() => {
+    if (!activePokemonModal) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setActivePokemonModal(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activePokemonModal]);
 
   return (
     <section className='space-y-5'>
@@ -324,6 +350,21 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
             </select>
           </label>
         </div>
+
+        <div className='mt-4 flex justify-end border-t border-[#3a3a5c] pt-3'>
+          <button
+            className={`rounded border px-2 py-1 text-[13px] tracking-[0.08em] transition ${
+              isFiltering
+                ? "border-[#4b567b] bg-white/5 text-[#b5c0df] hover:bg-white/10"
+                : "border-[#2d3250] bg-white/3 text-[#5f6b8f]"
+            }`}
+            disabled={!isFiltering}
+            onClick={resetFilters}
+            type='button'
+          >
+            RESET FILTERS
+          </button>
+        </div>
       </div>
 
       <div className='flex flex-wrap items-center justify-between gap-2 px-1'>
@@ -350,28 +391,37 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
       ) : null}
 
       <div className='grid gap-3 rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.65)] p-3 md:grid-cols-2 xl:grid-cols-3'>
-        {filtered.map((pokemon) =>
-          (() => {
-            const cardKey = `${pokemon.number}-${pokemon.name}`;
-            const isExpandedOnMobile = Boolean(expandedMobileCards[cardKey]);
-            const showCardDetails = !isMobileViewport || isExpandedOnMobile;
-            const isEventPokemon = Boolean(pokemon.meta?.isEventPokemon);
-            const spawnHabitats = pokemonHabitatsByCardKey.get(cardKey) || [];
-            const displayNumber = isEventPokemon
-              ? pokemon.meta?.eventNumber || `E-${pokemon.number}`
-              : `#${pokemon.number}`;
+        {filtered.map((pokemon) => {
+          const cardKey = `${pokemon.number}-${pokemon.name}`;
+          const isEventPokemon = Boolean(pokemon.meta?.isEventPokemon);
+          const spawnHabitats = pokemonHabitatsByCardKey.get(cardKey) || [];
+          const displayNumber = isEventPokemon
+            ? pokemon.meta?.eventNumber || `E-${pokemon.number}`
+            : `#${pokemon.number}`;
 
-            const summaryContent = (
-              <>
+          return (
+            <article
+              key={cardKey}
+              className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-3 shadow-[inset_0_1px_0_rgba(160,196,255,.08)] transition duration-150 hover:-translate-y-0.5 hover:border-[#a0c4ff] sm:p-4'
+            >
+              <button
+                className='w-full text-left'
+                onClick={() =>
+                  setActivePokemonModal({
+                    pokemon,
+                    spawnHabitats,
+                    displayNumber,
+                  })
+                }
+                type='button'
+              >
                 <div className='mb-2 flex items-center justify-between gap-2'>
                   <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
                     {displayNumber}
                   </span>
-                  {isMobileViewport ? (
-                    <span className='text-[12px] font-semibold tracking-[0.08em] text-[#8ca2d0]'>
-                      {isExpandedOnMobile ? "Hide" : "Show"}
-                    </span>
-                  ) : null}
+                  <span className='text-[12px] font-semibold tracking-[0.08em] text-[#8ca2d0]'>
+                    DETAILS
+                  </span>
                 </div>
 
                 <div className='flex items-center gap-2'>
@@ -379,7 +429,7 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
                     <Image
                       aria-hidden='true'
                       className='inline-block h-14 w-14 object-contain sm:h-16 sm:w-16 md:h-20 md:w-20'
-                      src={pokemon.meta.spriteUrl}
+                      src={toPublicImageSrc(pokemon.meta.spriteUrl)}
                       alt=''
                       width={80}
                       height={80}
@@ -390,233 +440,258 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
                     {pokemon.name}
                   </span>
                 </div>
-              </>
-            );
 
-            return (
-              <article
-                key={cardKey}
-                className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-3 shadow-[inset_0_1px_0_rgba(160,196,255,.08)] transition duration-150 hover:-translate-y-0.5 hover:border-[#a0c4ff] sm:p-4'
-              >
-                {isMobileViewport ? (
-                  <button
-                    className='w-full text-left'
-                    onClick={() =>
-                      setExpandedMobileCards((prev) => ({
-                        ...prev,
-                        [cardKey]: !prev[cardKey],
-                      }))
-                    }
-                    type='button'
-                  >
-                    {summaryContent}
-                  </button>
-                ) : (
-                  <div>{summaryContent}</div>
-                )}
-
-                {showCardDetails ? (
-                  <>
-                    <p className='mt-1 text-[15px] text-[#8a8aa8] sm:text-sm'>
-                      {pokemon.primaryLocation}
-                    </p>
-
-                    <div className='mt-2 flex items-center gap-2 text-sm text-[#a9a9c2]'>
-                      <span className='font-semibold text-[#999]'>Ideal:</span>
-                      <span
-                        className={`${CHIP_BASE_CLASS} ${chipTone(pokemon.idealHabitat, IDEAL_CHIP_CLASSES)}`}
-                      >
-                        {pokemon.idealHabitat}
-                      </span>
-                    </div>
-
-                    <div className='mt-1 flex items-start gap-2 text-sm text-[#a9a9c2]'>
-                      <span className='mt-1 font-semibold text-[#999]'>
-                        Habitats:
-                      </span>
-                      {spawnHabitats.length > 0 ? (
-                        <div className='flex flex-wrap gap-1'>
-                          {spawnHabitats.map((habitatName) => (
-                            <span
-                              className={`${CHIP_BASE_CLASS} ${chipTone(habitatName, AREA_CHIP_CLASSES)}`}
-                              key={`${pokemon.number}-${pokemon.name}-spawn-habitat-${habitatName}`}
-                            >
-                              {habitatName}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className='text-sm text-[#666]'>-</span>
-                      )}
-                    </div>
-
-                    {pokemon.meta?.rarity ? (
-                      <div className='mt-1 flex items-center gap-2 text-sm text-[#a9a9c2]'>
-                        <span className='font-semibold text-[#999]'>
-                          Rarity:
-                        </span>
-                        <span
-                          className={`${CHIP_BASE_CLASS} ${chipTone(pokemon.meta.rarity, RARITY_CHIP_CLASSES)}`}
-                        >
-                          {pokemon.meta.rarity}
-                        </span>
-                      </div>
-                    ) : null}
-
-                    <div className='mt-3 space-y-2'>
-                      <div>
-                        <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
-                          Favorites
-                          <span className='ml-1 text-xs font-normal tracking-[0.02em] text-[#5cf73d]'>
-                            (tappable to filter items)
-                          </span>
-                        </p>
-                        {pokemon.favorites.length > 0 ? (
-                          <div className='mt-1 flex flex-wrap gap-1'>
-                            {pokemon.favorites.map((favoriteName, index) => (
-                              <Link
-                                key={`${pokemon.number}-${pokemon.name}-favorite-${favoriteName}-${index}`}
-                                className={`${CHIP_BASE_CLASS} ${chipTone(favoriteName, FAVORITE_CHIP_CLASSES)} transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#a0c4ff]/60`}
-                                href={`/items?favorite=${encodeURIComponent(favoriteName)}`}
-                              >
-                                {favoriteName}
-                              </Link>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className='text-sm text-[#666]'>-</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
-                          Specialties
-                        </p>
-                        {Array.isArray(pokemon.meta?.specialtyDetails) &&
-                        pokemon.meta.specialtyDetails.length > 0 ? (
-                          <ul className='mt-1 flex flex-wrap gap-1'>
-                            {pokemon.meta.specialtyDetails.map((specialty) => (
-                              <li
-                                key={`${pokemon.number}-${pokemon.name}-${specialty.name}`}
-                              >
-                                <span
-                                  className={`${CHIP_BASE_CLASS} ${chipTone(specialty.name, SPECIALTY_CHIP_CLASSES)}`}
-                                >
-                                  {specialty.iconUrl ? (
-                                    <Image
-                                      aria-hidden='true'
-                                      className='inline-block h-5 w-5 object-contain align-middle'
-                                      src={specialty.iconUrl}
-                                      alt=''
-                                      width={20}
-                                      height={20}
-                                      unoptimized
-                                    />
-                                  ) : null}
-                                  {specialty.name}
-                                  {specialty.name.toLowerCase() === "litter" &&
-                                  specialty.litterItemIconUrl ? (
-                                    <>
-                                      <span className='mx-1 text-[#666]'>
-                                        |
-                                      </span>
-                                      <Image
-                                        aria-hidden='true'
-                                        className='inline-block h-5 w-5 object-contain align-middle'
-                                        src={specialty.litterItemIconUrl}
-                                        alt=''
-                                        width={20}
-                                        height={20}
-                                        unoptimized
-                                      />
-                                      {specialty.litterItemName ?? "Drop"}
-                                    </>
-                                  ) : null}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : pokemon.specialties.length > 0 ? (
-                          <div className='mt-1 flex flex-wrap gap-1'>
-                            {pokemon.specialties.map((specialtyName) => (
-                              <span
-                                key={`${pokemon.number}-${pokemon.name}-specialty-${specialtyName}`}
-                                className={`${CHIP_BASE_CLASS} ${chipTone(specialtyName, SPECIALTY_CHIP_CLASSES)}`}
-                              >
-                                {(() => {
-                                  const specialtyDetail =
-                                    pokemon.meta?.specialtyDetails.find(
-                                      (detail) => detail.name === specialtyName,
-                                    );
-                                  return specialtyDetail?.iconUrl ? (
-                                    <Image
-                                      aria-hidden='true'
-                                      className='inline-block h-5 w-5 object-contain align-middle'
-                                      src={specialtyDetail.iconUrl}
-                                      alt=''
-                                      width={20}
-                                      height={20}
-                                      unoptimized
-                                    />
-                                  ) : null;
-                                })()}
-                                {specialtyName}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className='text-sm text-[#666]'>-</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
-                          Available Areas
-                        </p>
-                        {(() => {
-                          const areaEntries =
-                            pokemon.meta?.areaDetails &&
-                            pokemon.meta.areaDetails.length > 0
-                              ? pokemon.meta.areaDetails
-                              : pokemon.availableAreas.map((areaName) => ({
-                                  name: areaName,
-                                }));
-
-                          return areaEntries.length > 0 ? (
-                            <div className='mt-1 flex flex-wrap gap-1'>
-                              {areaEntries.map((area) => (
-                                <span
-                                  key={`${pokemon.number}-${pokemon.name}-area-${area.name}`}
-                                  className={`${CHIP_BASE_CLASS} ${chipTone(area.name, AREA_CHIP_CLASSES)}`}
-                                >
-                                  {area.iconUrl ? (
-                                    <Image
-                                      aria-hidden='true'
-                                      className='inline-block h-5 w-5 object-contain align-middle'
-                                      src={area.iconUrl}
-                                      alt=''
-                                      width={20}
-                                      height={20}
-                                      unoptimized
-                                    />
-                                  ) : null}
-                                  {area.name}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className='text-sm text-[#666]'>-</p>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </>
-                ) : null}
-              </article>
-            );
-          })(),
-        )}
+                <p className='mt-2 text-[15px] text-[#8a8aa8] sm:text-sm'>
+                  {pokemon.primaryLocation}
+                </p>
+              </button>
+            </article>
+          );
+        })}
       </div>
+
+      {activePokemonModal ? (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,.7)] p-3'
+          onClick={() => setActivePokemonModal(null)}
+          role='presentation'
+        >
+          <div
+            aria-labelledby='pokemon-modal-title'
+            aria-modal='true'
+            className='max-h-[88vh] w-full max-w-[900px] overflow-y-auto rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.98)] p-4 shadow-[0_20px_50px_rgba(0,0,0,.4)] sm:p-5'
+            onClick={(event) => event.stopPropagation()}
+            role='dialog'
+          >
+            <div className='mb-2 flex items-start justify-between gap-3'>
+              <div className='min-w-0'>
+                <div className='mb-2 flex items-center gap-2'>
+                  <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
+                    {activePokemonModal.displayNumber}
+                  </span>
+                  {activePokemonModal.pokemon.meta?.rarity ? (
+                    <span
+                      className={`${CHIP_BASE_CLASS} ${chipTone(activePokemonModal.pokemon.meta.rarity, RARITY_CHIP_CLASSES)}`}
+                    >
+                      {activePokemonModal.pokemon.meta.rarity}
+                    </span>
+                  ) : null}
+                </div>
+                <h3
+                  className='break-words text-3xl font-bold text-[#e6edff]'
+                  id='pokemon-modal-title'
+                >
+                  {activePokemonModal.pokemon.name}
+                </h3>
+                <p className='mt-1 text-[15px] text-[#8a8aa8]'>
+                  {activePokemonModal.pokemon.primaryLocation}
+                </p>
+              </div>
+
+              <button
+                className='rounded border border-[#3a3a5c] px-2 py-1 text-[12px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-white/10'
+                onClick={() => setActivePokemonModal(null)}
+                type='button'
+              >
+                CLOSE
+              </button>
+            </div>
+
+            <div className='mb-3 flex items-center gap-2 text-sm text-[#a9a9c2]'>
+              <span className='font-semibold text-[#999]'>Ideal:</span>
+              <span
+                className={`${CHIP_BASE_CLASS} ${chipTone(activePokemonModal.pokemon.idealHabitat, IDEAL_CHIP_CLASSES)}`}
+              >
+                {activePokemonModal.pokemon.idealHabitat}
+              </span>
+            </div>
+
+            <div className='mb-3 flex items-start gap-2 text-sm text-[#a9a9c2]'>
+              <span className='mt-1 font-semibold text-[#999]'>Habitats:</span>
+              {activePokemonModal.spawnHabitats.length > 0 ? (
+                <div className='flex flex-wrap gap-1'>
+                  {activePokemonModal.spawnHabitats.map((habitatEntry) => (
+                    <Link
+                      className={`${CHIP_BASE_CLASS} ${chipTone(habitatEntry.name, AREA_CHIP_CLASSES)} transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#a0c4ff]/60`}
+                      href={`/pokemon-explorer/habitat-dex#${habitatEntry.anchorId}`}
+                      key={`${activePokemonModal.pokemon.number}-${activePokemonModal.pokemon.name}-spawn-habitat-${habitatEntry.key}`}
+                    >
+                      {habitatEntry.imageUrl ? (
+                        <Image
+                          alt=''
+                          aria-hidden='true'
+                          className='h-4 w-4 rounded-sm border border-[#3a3a5c] object-cover'
+                          height={16}
+                          src={habitatEntry.imageUrl}
+                          unoptimized
+                          width={16}
+                        />
+                      ) : null}
+                      {habitatEntry.name}
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <span className='text-sm text-[#666]'>-</span>
+              )}
+            </div>
+
+            <div className='space-y-3'>
+              <div>
+                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                  Favorites
+                  <span className='ml-1 text-xs font-normal tracking-[0.02em] text-[#5cf73d]'>
+                    (tappable to filter items)
+                  </span>
+                </p>
+                {activePokemonModal.pokemon.favorites.length > 0 ? (
+                  <div className='mt-1 flex flex-wrap gap-1'>
+                    {activePokemonModal.pokemon.favorites.map(
+                      (favoriteName, index) => (
+                        <Link
+                          key={`${activePokemonModal.pokemon.number}-${activePokemonModal.pokemon.name}-favorite-${favoriteName}-${index}`}
+                          className={`${CHIP_BASE_CLASS} ${chipTone(favoriteName, FAVORITE_CHIP_CLASSES)} transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#a0c4ff]/60`}
+                          href={`/items?favorite=${encodeURIComponent(favoriteName)}`}
+                        >
+                          {favoriteName}
+                        </Link>
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  <p className='text-sm text-[#666]'>-</p>
+                )}
+              </div>
+
+              <div>
+                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                  Specialties
+                </p>
+                {Array.isArray(activePokemonModal.pokemon.meta?.specialtyDetails) &&
+                activePokemonModal.pokemon.meta.specialtyDetails.length > 0 ? (
+                  <ul className='mt-1 flex flex-wrap gap-1'>
+                    {activePokemonModal.pokemon.meta.specialtyDetails.map(
+                      (specialty) => (
+                        <li
+                          key={`${activePokemonModal.pokemon.number}-${activePokemonModal.pokemon.name}-${specialty.name}`}
+                        >
+                          <span
+                            className={`${CHIP_BASE_CLASS} ${chipTone(specialty.name, SPECIALTY_CHIP_CLASSES)}`}
+                          >
+                            {specialty.iconUrl ? (
+                              <Image
+                                aria-hidden='true'
+                                className='inline-block h-5 w-5 object-contain align-middle'
+                                src={specialty.iconUrl}
+                                alt=''
+                                width={20}
+                                height={20}
+                                unoptimized
+                              />
+                            ) : null}
+                            {specialty.name}
+                            {specialty.name.toLowerCase() === "litter" &&
+                            specialty.litterItemIconUrl ? (
+                              <>
+                                <span className='mx-1 text-[#666]'>|</span>
+                                <Image
+                                  aria-hidden='true'
+                                  className='inline-block h-5 w-5 object-contain align-middle'
+                                  src={specialty.litterItemIconUrl}
+                                  alt=''
+                                  width={20}
+                                  height={20}
+                                  unoptimized
+                                />
+                                {specialty.litterItemName ?? "Drop"}
+                              </>
+                            ) : null}
+                          </span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                ) : activePokemonModal.pokemon.specialties.length > 0 ? (
+                  <div className='mt-1 flex flex-wrap gap-1'>
+                    {activePokemonModal.pokemon.specialties.map(
+                      (specialtyName) => (
+                        <span
+                          key={`${activePokemonModal.pokemon.number}-${activePokemonModal.pokemon.name}-specialty-${specialtyName}`}
+                          className={`${CHIP_BASE_CLASS} ${chipTone(specialtyName, SPECIALTY_CHIP_CLASSES)}`}
+                        >
+                          {(() => {
+                            const specialtyDetail =
+                              activePokemonModal.pokemon.meta?.specialtyDetails.find(
+                                (detail) => detail.name === specialtyName,
+                              );
+                            return specialtyDetail?.iconUrl ? (
+                              <Image
+                                aria-hidden='true'
+                                className='inline-block h-5 w-5 object-contain align-middle'
+                                src={specialtyDetail.iconUrl}
+                                alt=''
+                                width={20}
+                                height={20}
+                                unoptimized
+                              />
+                            ) : null;
+                          })()}
+                          {specialtyName}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  <p className='text-sm text-[#666]'>-</p>
+                )}
+              </div>
+
+              <div>
+                <p className='text-[12px] font-semibold uppercase tracking-[0.14em] text-[#777]'>
+                  Available Areas
+                </p>
+                {(() => {
+                  const areaEntries =
+                    activePokemonModal.pokemon.meta?.areaDetails &&
+                    activePokemonModal.pokemon.meta.areaDetails.length > 0
+                      ? activePokemonModal.pokemon.meta.areaDetails
+                      : activePokemonModal.pokemon.availableAreas.map(
+                          (areaName) => ({
+                            name: areaName,
+                          }),
+                        );
+
+                  return areaEntries.length > 0 ? (
+                    <div className='mt-1 flex flex-wrap gap-1'>
+                      {areaEntries.map((area) => (
+                        <span
+                          key={`${activePokemonModal.pokemon.number}-${activePokemonModal.pokemon.name}-area-${area.name}`}
+                          className={`${CHIP_BASE_CLASS} ${chipTone(area.name, AREA_CHIP_CLASSES)}`}
+                        >
+                          {area.iconUrl ? (
+                            <Image
+                              aria-hidden='true'
+                              className='inline-block h-5 w-5 object-contain align-middle'
+                              src={area.iconUrl}
+                              alt=''
+                              width={20}
+                              height={20}
+                              unoptimized
+                            />
+                          ) : null}
+                          {area.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className='text-sm text-[#666]'>-</p>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const INPUT_CLASS =
   "w-full rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 py-2 text-[16px] text-[#e0e0e0] outline-none transition placeholder:text-[#666] focus:border-[#a0c4ff] focus:ring-1 focus:ring-[#a0c4ff]/40";
@@ -32,6 +32,21 @@ function iconForTime(value) {
 
 function iconForWeather(value) {
   return WEATHER_ICON_URLS[value] || "";
+}
+
+function normalizeKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function getHabitatAnchorId(habitat) {
+  const detailPathKey = String(habitat?.detailPath || "")
+    .split("/")
+    .pop()
+    ?.replace(/\.shtml$/i, "");
+  const key = normalizeKey(detailPathKey || habitat?.id || habitat?.slug || habitat?.name);
+  return key ? `habitat-${key}` : "";
 }
 
 function matchesHabitat(habitat, query) {
@@ -89,6 +104,24 @@ export function HabitatDexExplorer({ habitatDataset }) {
     });
   }, [habitatDataset.habitats, locationFilter, query]);
 
+  const isFiltering = query.trim().length > 0 || locationFilter !== "all";
+
+  const resetFilters = () => {
+    setQuery("");
+    setLocationFilter("all");
+  };
+
+  useEffect(() => {
+    if (!activePokemonModal) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setActivePokemonModal(null);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activePokemonModal]);
+
   return (
     <section className='space-y-5'>
       <div className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-4 shadow-[0_8px_30px_rgba(0,0,0,.25)] md:p-5'>
@@ -123,6 +156,21 @@ export function HabitatDexExplorer({ habitatDataset }) {
             </select>
           </label>
         </div>
+
+        <div className='mt-4 flex justify-end border-t border-[#3a3a5c] pt-3'>
+          <button
+            className={`rounded border px-2 py-1 text-[13px] tracking-[0.08em] transition ${
+              isFiltering
+                ? "border-[#4b567b] bg-white/5 text-[#b5c0df] hover:bg-white/10"
+                : "border-[#2d3250] bg-white/3 text-[#5f6b8f]"
+            }`}
+            disabled={!isFiltering}
+            onClick={resetFilters}
+            type='button'
+          >
+            RESET FILTERS
+          </button>
+        </div>
       </div>
 
       <div className='flex flex-wrap items-center justify-between gap-2 px-1'>
@@ -138,6 +186,7 @@ export function HabitatDexExplorer({ habitatDataset }) {
         {filteredHabitats.map((habitat) => (
           <article
             className='rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.9)] p-3 shadow-[inset_0_1px_0_rgba(160,196,255,.08)] sm:p-4'
+            id={getHabitatAnchorId(habitat)}
             key={`${habitat.id}-${habitat.detailPath || habitat.slug || habitat.name}`}
           >
             <div className='mb-2 flex items-start justify-between gap-2'>
@@ -300,8 +349,17 @@ export function HabitatDexExplorer({ habitatDataset }) {
       </div>
 
       {activePokemonModal ? (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,.7)] p-3'>
-          <div className='w-full max-w-[560px] rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.98)] p-4 shadow-[0_20px_50px_rgba(0,0,0,.4)]'>
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,.7)] p-3'
+          onClick={() => setActivePokemonModal(null)}
+          role='presentation'
+        >
+          <div
+            aria-modal='true'
+            className='w-full max-w-[560px] rounded-xl border border-[#3a3a5c] bg-[rgba(10,10,20,.98)] p-4 shadow-[0_20px_50px_rgba(0,0,0,.4)]'
+            onClick={(event) => event.stopPropagation()}
+            role='dialog'
+          >
             <div className='flex items-start justify-between gap-3'>
               <div>
                 <p className='text-[12px] uppercase tracking-[0.12em] text-[#8ea4cf]'>
