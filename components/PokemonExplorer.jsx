@@ -77,7 +77,22 @@ function chipTone(label, palette) {
   return palette[index];
 }
 
-export function PokemonExplorer({ dataset }) {
+function normalizeKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function normalizeHabitatPathKey(detailPath) {
+  return normalizeKey(
+    String(detailPath || "")
+      .split("/")
+      .pop()
+      ?.replace(/\.shtml$/i, "") || "",
+  );
+}
+
+export function PokemonExplorer({ dataset, habitatDataset }) {
   const [query, setQuery] = useState("");
   const [habitat, setHabitat] = useState("all");
   const [location, setLocation] = useState("all");
@@ -129,17 +144,50 @@ export function PokemonExplorer({ dataset }) {
     [dataset.pokemon],
   );
 
+  const habitatNameByPathKey = useMemo(() => {
+    const lookup = new Map();
+    for (const habitatEntry of habitatDataset?.habitats || []) {
+      const key = normalizeHabitatPathKey(habitatEntry.detailPath);
+      if (!key || lookup.has(key)) continue;
+      lookup.set(key, habitatEntry.name);
+    }
+    return lookup;
+  }, [habitatDataset?.habitats]);
+
+  const pokemonHabitatsByCardKey = useMemo(() => {
+    const lookup = new Map();
+
+    for (const pokemon of dataset.pokemon) {
+      const cardKey = `${pokemon.number}-${pokemon.name}`;
+      const habitatIds = Array.isArray(pokemon.meta?.habitatIds)
+        ? pokemon.meta.habitatIds
+        : [];
+      const values = habitatIds
+        .map((habitatId) => habitatNameByPathKey.get(normalizeKey(habitatId)))
+        .filter(Boolean);
+      const uniqueValues = Array.from(new Set(values)).sort((a, b) =>
+        a.localeCompare(b),
+      );
+      lookup.set(cardKey, uniqueValues);
+    }
+
+    return lookup;
+  }, [dataset.pokemon, habitatNameByPathKey]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return dataset.pokemon.filter((pokemon) => {
+      const pokemonHabitatNames =
+        pokemonHabitatsByCardKey.get(`${pokemon.number}-${pokemon.name}`) || [];
       const inQuery =
         q.length === 0 ||
         pokemon.name.toLowerCase().includes(q) ||
         pokemon.number.toLowerCase().includes(q) ||
         (pokemon.meta?.eventNumber || "").toLowerCase().includes(q) ||
         pokemon.favorites.some((f) => f.toLowerCase().includes(q)) ||
-        pokemon.specialties.some((s) => s.toLowerCase().includes(q));
+        pokemon.specialties.some((s) => s.toLowerCase().includes(q)) ||
+        pokemonHabitatNames.some((entry) => entry.toLowerCase().includes(q));
 
       const inHabitat = habitat === "all" || pokemon.idealHabitat === habitat;
       const inLocation =
@@ -162,7 +210,16 @@ export function PokemonExplorer({ dataset }) {
         inEventType
       );
     });
-  }, [dataset.pokemon, eventType, favorite, habitat, location, query, rarity]);
+  }, [
+    dataset.pokemon,
+    eventType,
+    favorite,
+    habitat,
+    location,
+    pokemonHabitatsByCardKey,
+    query,
+    rarity,
+  ]);
 
   return (
     <section className='space-y-5'>
@@ -175,7 +232,7 @@ export function PokemonExplorer({ dataset }) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder='Name, number, favorite, specialty'
+              placeholder='Name, number, favorite, specialty, spawn habitat'
               className={FILTER_INPUT_CLASS}
             />
           </label>
@@ -305,6 +362,7 @@ export function PokemonExplorer({ dataset }) {
             const isExpandedOnMobile = Boolean(expandedMobileCards[cardKey]);
             const showCardDetails = !isMobileViewport || isExpandedOnMobile;
             const isEventPokemon = Boolean(pokemon.meta?.isEventPokemon);
+            const spawnHabitats = pokemonHabitatsByCardKey.get(cardKey) || [];
             const displayNumber = isEventPokemon
               ? pokemon.meta?.eventNumber || `E-${pokemon.number}`
               : `#${pokemon.number}`;
@@ -376,6 +434,26 @@ export function PokemonExplorer({ dataset }) {
                       >
                         {pokemon.idealHabitat}
                       </span>
+                    </div>
+
+                    <div className='mt-1 flex items-start gap-2 text-sm text-[#a9a9c2]'>
+                      <span className='mt-1 font-semibold text-[#999]'>
+                        Habitats:
+                      </span>
+                      {spawnHabitats.length > 0 ? (
+                        <div className='flex flex-wrap gap-1'>
+                          {spawnHabitats.map((habitatName) => (
+                            <span
+                              className={`${CHIP_BASE_CLASS} ${chipTone(habitatName, AREA_CHIP_CLASSES)}`}
+                              key={`${pokemon.number}-${pokemon.name}-spawn-habitat-${habitatName}`}
+                            >
+                              {habitatName}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className='text-sm text-[#666]'>-</span>
+                      )}
                     </div>
 
                     {pokemon.meta?.rarity ? (

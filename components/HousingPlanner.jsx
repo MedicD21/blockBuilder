@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   PREFAB_HOUSE_OPTIONS,
   buildPreconfiguredHousingPlans,
-  calculateHousingHappiness,
+  calculateHousingComfort,
   createHousingLookups,
   getHouseCapacity,
   normalizeSavedHousingConfig,
@@ -21,6 +21,20 @@ function toPublicImageSrc(src) {
   if (src.startsWith("http://") || src.startsWith("https://")) return src;
   if (src.startsWith("/")) return src;
   return `/${src}`;
+}
+
+function normalizeTextKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function sectionPreferenceScore(sectionTitle) {
+  const label = String(sectionTitle || "").toLowerCase();
+  if (label.includes("lost relics")) return 5;
+  if (label.includes("other")) return 4;
+  if (label.includes("misc")) return 3;
+  return 1;
 }
 
 function formatSavedDate(value) {
@@ -87,19 +101,89 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
   );
 
   const itemOptions = useMemo(() => {
-    const rows = [];
+    const byNameKey = new Map();
+
     for (const section of itemsDataset?.sections || []) {
       for (const item of section.items || []) {
-        rows.push({
-          ...item,
-          imageSrc: toPublicImageSrc(item.imageSrc),
-        });
+        const itemName = String(item.name || "").trim();
+        if (!itemName) continue;
+        const itemKey = normalizeTextKey(itemName);
+        const imageSrc = toPublicImageSrc(item.imageSrc);
+        const sectionTitle = String(section.title || item.sectionTitle || "").trim();
+        const existing = byNameKey.get(itemKey);
+
+        if (!existing) {
+          byNameKey.set(itemKey, {
+            ...item,
+            imageSrc,
+            sectionTitle,
+            sectionTitles: new Set(sectionTitle ? [sectionTitle] : []),
+            favoritesSet: new Set(item.favorites || []),
+            qualityRank: sectionPreferenceScore(sectionTitle),
+          });
+          continue;
+        }
+
+        if (sectionTitle) {
+          existing.sectionTitles.add(sectionTitle);
+        }
+        for (const favorite of item.favorites || []) {
+          existing.favoritesSet.add(favorite);
+        }
+
+        const nextRank = sectionPreferenceScore(sectionTitle);
+        const shouldReplacePrimary = nextRank < existing.qualityRank;
+        if (shouldReplacePrimary) {
+          existing.id = item.id;
+          existing.sectionTitle = sectionTitle;
+          existing.imageSrc = imageSrc || existing.imageSrc;
+          existing.qualityRank = nextRank;
+        }
       }
     }
-    return rows.sort((a, b) => a.name.localeCompare(b.name));
+
+    return Array.from(byNameKey.values())
+      .map((entry) => ({
+        ...entry,
+        favorites: Array.from(entry.favoritesSet).sort((a, b) => a.localeCompare(b)),
+        sectionTitle:
+          entry.sectionTitle ||
+          Array.from(entry.sectionTitles).sort((a, b) => a.localeCompare(b))[0] ||
+          "Other",
+        sectionLabels: Array.from(entry.sectionTitles).sort((a, b) =>
+          a.localeCompare(b),
+        ),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [itemsDataset?.sections]);
 
+  const pokemonFavoriteFilterOptions = useMemo(
+    () => [...(pokemonDataset?.facets?.favorites || [])].sort((a, b) => a.localeCompare(b)),
+    [pokemonDataset?.facets?.favorites],
+  );
+
+  const pokemonLikeFilterOptions = useMemo(() => {
+    const values = new Set();
+    for (const pokemon of pokemonOptions) {
+      for (const like of pokemon.habitatAttractions || []) {
+        if (like) values.add(like);
+      }
+    }
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [pokemonOptions]);
+
+  const itemFavoriteFilterOptions = useMemo(() => {
+    const values = new Set();
+    for (const item of itemOptions) {
+      for (const favorite of item.favorites || []) {
+        if (favorite) values.add(favorite);
+      }
+    }
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [itemOptions]);
+
   const [activeSubsection, setActiveSubsection] = useState("ideal");
+  const [isPresetExamplesOpen, setIsPresetExamplesOpen] = useState(false);
   const [houseMode, setHouseMode] = useState("prefab");
   const [prefabType, setPrefabType] = useState(PREFAB_HOUSE_OPTIONS[1].id);
   const [preferredHabitat, setPreferredHabitat] = useState(
@@ -113,6 +197,12 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
   const [itemSelections, setItemSelections] = useState([]);
   const [pokemonSearch, setPokemonSearch] = useState("");
   const [itemSearch, setItemSearch] = useState("");
+  const [pokemonFavoriteFilter, setPokemonFavoriteFilter] = useState("all");
+  const [pokemonLikeFilter, setPokemonLikeFilter] = useState("all");
+  const [itemFavoriteFilter, setItemFavoriteFilter] = useState("all");
+  const [itemLikeFilter, setItemLikeFilter] = useState("all");
+  const [selectedResidentFavoriteTag, setSelectedResidentFavoriteTag] = useState("");
+  const [similarToFirstResidentOnly, setSimilarToFirstResidentOnly] = useState(false);
   const [plannerMessage, setPlannerMessage] = useState("");
 
   const [isAccountPanelOpen, setIsAccountPanelOpen] = useState(false);
@@ -352,13 +442,29 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
   );
 
   const selectedItems = useMemo(
-    () =>
-      itemSelections
-        .map((entry) => ({
-          item: lookups.itemsById.get(entry.itemId),
-          quantity: Number(entry.quantity) || 0,
-        }))
-        .filter((entry) => entry.item && entry.quantity > 0),
+    () => {
+      const grouped = new Map();
+
+      itemSelections.forEach((entry) => {
+        const item = lookups.itemsById.get(entry.itemId);
+        const quantity = Number(entry.quantity) || 0;
+        if (!item || quantity <= 0) return;
+
+        const key = normalizeTextKey(item.name);
+        const existing = grouped.get(key);
+        if (!existing) {
+          grouped.set(key, {
+            item,
+            quantity,
+          });
+          return;
+        }
+
+        existing.quantity += quantity;
+      });
+
+      return Array.from(grouped.values());
+    },
     [itemSelections, lookups.itemsById],
   );
 
@@ -371,9 +477,9 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
       null
     : null;
 
-  const happiness = useMemo(
+  const comfort = useMemo(
     () =>
-      calculateHousingHappiness({
+      calculateHousingComfort({
         selectedResidents,
         selectedItems,
         preferredHabitat,
@@ -391,38 +497,137 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
     ],
   );
 
+  useEffect(() => {
+    setItemSelections((previous) => {
+      const grouped = new Map();
+      let changed = false;
+
+      previous.forEach((entry) => {
+        const item = lookups.itemsById.get(entry.itemId);
+        const quantity = Number(entry.quantity) || 0;
+        if (!item || quantity <= 0) {
+          changed = true;
+          return;
+        }
+
+        const key = normalizeTextKey(item.name);
+        const existing = grouped.get(key);
+        if (!existing) {
+          grouped.set(key, { itemId: item.id, quantity });
+          return;
+        }
+
+        existing.quantity += quantity;
+        changed = true;
+      });
+
+      if (!changed && grouped.size === previous.length) return previous;
+      return Array.from(grouped.values());
+    });
+  }, [lookups.itemsById]);
+
+  useEffect(() => {
+    if (!selectedResidentFavoriteTag) return;
+    const hasTag = selectedResidents.some((resident) =>
+      (resident.favorites || []).includes(selectedResidentFavoriteTag),
+    );
+    if (!hasTag) {
+      setSelectedResidentFavoriteTag("");
+    }
+  }, [selectedResidentFavoriteTag, selectedResidents]);
+
   const availablePokemonOptions = useMemo(() => {
     const selectedSet = new Set(selectedResidentNames);
     const query = pokemonSearch.trim().toLowerCase();
+    const firstSelectedResident =
+      selectedResidentNames.length > 0
+        ? lookups.pokemonByName.get(selectedResidentNames[0]) || null
+        : null;
+    const firstFavoriteKeySet = new Set(
+      (firstSelectedResident?.favorites || []).map((favorite) =>
+        normalizeTextKey(favorite),
+      ),
+    );
 
     return pokemonOptions
       .filter((pokemon) => !selectedSet.has(pokemon.name))
       .filter((pokemon) => {
+        const inFavoriteFilter =
+          pokemonFavoriteFilter === "all" ||
+          pokemon.favorites.includes(pokemonFavoriteFilter);
+        const inLikeFilter =
+          pokemonLikeFilter === "all" ||
+          (pokemon.habitatAttractions || []).includes(pokemonLikeFilter);
+        const inSimilarityFilter =
+          !similarToFirstResidentOnly ||
+          !firstSelectedResident ||
+          normalizeTextKey(pokemon.idealHabitat) ===
+            normalizeTextKey(firstSelectedResident.idealHabitat) ||
+          pokemon.favorites.some((favorite) =>
+            firstFavoriteKeySet.has(normalizeTextKey(favorite)),
+          );
+
+        if (!inFavoriteFilter || !inLikeFilter || !inSimilarityFilter) {
+          return false;
+        }
+
         if (!query) return true;
-        return (
-          pokemon.name.toLowerCase().includes(query) ||
-          pokemon.number.toLowerCase().includes(query) ||
-          pokemon.idealHabitat.toLowerCase().includes(query) ||
-          pokemon.favorites.some((favorite) => favorite.toLowerCase().includes(query))
-        );
+        return [
+          pokemon.name,
+          pokemon.number,
+          pokemon.idealHabitat,
+          pokemon.primaryLocation,
+          ...(pokemon.favorites || []),
+          ...(pokemon.habitatAttractions || []),
+          ...(pokemon.specialties || []),
+        ].some((value) => String(value || "").toLowerCase().includes(query));
       })
       .slice(0, 80);
-  }, [pokemonOptions, pokemonSearch, selectedResidentNames]);
+  }, [
+    lookups.pokemonByName,
+    pokemonFavoriteFilter,
+    pokemonLikeFilter,
+    pokemonOptions,
+    pokemonSearch,
+    selectedResidentNames,
+    similarToFirstResidentOnly,
+  ]);
 
   const availableItemOptions = useMemo(() => {
     const query = itemSearch.trim().toLowerCase();
 
     return itemOptions
       .filter((item) => {
+        const inFavoriteFilter =
+          itemFavoriteFilter === "all" || item.favorites.includes(itemFavoriteFilter);
+        const inResidentFavoriteFilter =
+          !selectedResidentFavoriteTag ||
+          item.favorites.includes(selectedResidentFavoriteTag);
+        const inLikeFilter =
+          itemLikeFilter === "all" ||
+          normalizeTextKey(item.name) === normalizeTextKey(itemLikeFilter);
+        if (!inFavoriteFilter || !inResidentFavoriteFilter || !inLikeFilter) {
+          return false;
+        }
+
         if (!query) return true;
-        return (
-          item.name.toLowerCase().includes(query) ||
-          item.sectionTitle.toLowerCase().includes(query) ||
-          item.favorites.some((favorite) => favorite.toLowerCase().includes(query))
-        );
+        return [
+          item.name,
+          item.sectionTitle,
+          ...(item.sectionLabels || []),
+          ...(item.favorites || []),
+          item.tagText,
+          item.description,
+        ].some((value) => String(value || "").toLowerCase().includes(query));
       })
       .slice(0, 120);
-  }, [itemOptions, itemSearch]);
+  }, [
+    itemFavoriteFilter,
+    itemLikeFilter,
+    itemOptions,
+    itemSearch,
+    selectedResidentFavoriteTag,
+  ]);
 
   const addResident = useCallback(
     (pokemonName) => {
@@ -491,10 +696,18 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
   }, []);
 
   const removeItem = useCallback((itemId) => {
+    const item = lookups.itemsById.get(itemId);
+    if (!item) return;
+    const removeKey = normalizeTextKey(item.name);
+
     setItemSelections((previous) =>
-      previous.filter((entry) => entry.itemId !== itemId),
+      previous.filter((entry) => {
+        const candidate = lookups.itemsById.get(entry.itemId);
+        if (!candidate) return false;
+        return normalizeTextKey(candidate.name) !== removeKey;
+      }),
     );
-  }, []);
+  }, [lookups.itemsById]);
 
   const applyPreconfiguredPlan = useCallback((plan) => {
     if (!plan) return;
@@ -524,7 +737,7 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
     const trimmedName = saveName.trim() || `Housing ${new Date().toLocaleString()}`;
     const payload = {
       name: trimmedName,
-      happinessScore: happiness.score,
+      happinessScore: comfort.score,
       config: {
         houseMode,
         prefabType,
@@ -571,8 +784,8 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
     }
   }, [
     authUser,
+    comfort.score,
     fetchSavedConfigs,
-    happiness.score,
     houseMode,
     itemSelections,
     linkedBuilderProjectId,
@@ -823,7 +1036,7 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                         {config.name}
                       </p>
                       <p className='mt-1 text-[11px] tracking-[0.08em] text-[#7f8bb0]'>
-                        Happiness {config.happinessScore.toFixed(1)}% • {formatSavedDate(config.updatedAt)}
+                        Comfort {config.happinessScore.toFixed(1)}% • {formatSavedDate(config.updatedAt)}
                       </p>
                       <div className='mt-2 grid grid-cols-2 gap-1'>
                         <button
@@ -885,62 +1098,86 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
 
       {activeSubsection === "ideal" ? (
         <div className={PANEL_CLASS}>
-          <div className='mb-3 flex items-center justify-between gap-3'>
-            <h2 className='text-[16px] font-semibold uppercase tracking-[0.14em] text-[#a0c4ff]'>
-              Ideal Housing Presets
-            </h2>
-            <p className='text-[13px] tracking-[0.08em] text-[#8197c2]'>
-              Built from Pokemon ideal habitat preferences.
-            </p>
-          </div>
+          <button
+            className='flex w-full items-center justify-between gap-3 rounded-lg border border-[#3a3a5c] bg-white/5 px-3 py-2 text-left transition hover:bg-white/10'
+            onClick={() => setIsPresetExamplesOpen((previous) => !previous)}
+            type='button'
+          >
+            <div>
+              <h2 className='text-[16px] font-semibold uppercase tracking-[0.14em] text-[#a0c4ff]'>
+                Ideal Housing Preset Examples
+              </h2>
+              <p className='text-[13px] tracking-[0.08em] text-[#8197c2]'>
+                Built from Pokemon ideal habitat preferences.
+              </p>
+            </div>
+            <span className='rounded border border-[#3a3a5c] px-2 py-1 text-[11px] tracking-[0.1em] text-[#9fb0d6]'>
+              {isPresetExamplesOpen ? "HIDE" : "OPEN"}
+            </span>
+          </button>
 
-          <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
-            {preconfiguredPlans.slice(0, 18).map((plan) => (
-              <article
-                className='rounded-lg border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] p-3'
-                key={plan.id}
-              >
-                <h3 className='text-[17px] font-bold text-[#e8efff]'>{plan.title}</h3>
-                <p className='mt-1 text-[13px] text-[#8fa3cc]'>{plan.description}</p>
-
-                <p className='mt-2 text-[12px] uppercase tracking-[0.12em] text-[#7fa4e4]'>
-                  Recommended Favorites
-                </p>
-                <div className='mt-1 flex flex-wrap gap-1'>
-                  {plan.recommendedFavorites.slice(0, 5).map((favorite) => (
-                    <span
-                      className='rounded-full border border-[#4f628d] bg-[rgba(79,98,141,.25)] px-2 py-0.5 text-[11px] text-[#d7e7ff]'
-                      key={`${plan.id}-${favorite}`}
-                    >
-                      {favorite}
-                    </span>
-                  ))}
-                </div>
-
-                <p className='mt-2 text-[12px] uppercase tracking-[0.12em] text-[#7fa4e4]'>
-                  Suggested Residents
-                </p>
-                <div className='mt-1 flex flex-wrap gap-1'>
-                  {plan.sampleResidents.slice(0, 4).map((residentName) => (
-                    <span
-                      className='rounded-full border border-[#3a3a5c] bg-[rgba(255,255,255,.06)] px-2 py-0.5 text-[11px] text-[#cbd7f3]'
-                      key={`${plan.id}-${residentName}`}
-                    >
-                      {residentName}
-                    </span>
-                  ))}
-                </div>
-
-                <button
-                  className='mt-3 w-full rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[12px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)]'
-                  onClick={() => applyPreconfiguredPlan(plan)}
-                  type='button'
+          {isPresetExamplesOpen ? (
+            <div className='mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
+              {preconfiguredPlans.slice(0, 18).map((plan) => (
+                <article
+                  className='rounded-lg border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] p-3'
+                  key={plan.id}
                 >
-                  USE PRESET
-                </button>
-              </article>
-            ))}
-          </div>
+                  <h3 className='text-[17px] font-bold text-[#e8efff]'>{plan.title}</h3>
+                  <p className='mt-1 text-[13px] text-[#8fa3cc]'>{plan.description}</p>
+
+                  <p className='mt-2 text-[12px] uppercase tracking-[0.12em] text-[#7fa4e4]'>
+                    Suggested Residents
+                  </p>
+                  <div className='mt-1 grid gap-1'>
+                    {(plan.sampleResidentProfiles || []).map((resident) => (
+                      <div
+                        className='flex items-center gap-2 rounded border border-[#3a3a5c] bg-[rgba(255,255,255,.06)] px-2 py-1'
+                        key={`${plan.id}-${resident.name}`}
+                      >
+                        {resident.spriteUrl ? (
+                          <Image
+                            alt=''
+                            aria-hidden='true'
+                            className='h-7 w-7 object-contain'
+                            height={28}
+                            src={toPublicImageSrc(resident.spriteUrl)}
+                            unoptimized
+                            width={28}
+                          />
+                        ) : null}
+                        <span className='truncate text-[12px] text-[#cbd7f3]'>
+                          {resident.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className='mt-2 text-[12px] uppercase tracking-[0.12em] text-[#7fa4e4]'>
+                    Recommended Favorites
+                  </p>
+                  <div className='mt-1 flex flex-wrap gap-1'>
+                    {plan.recommendedFavorites.slice(0, 5).map((favorite) => (
+                      <span
+                        className='rounded-full border border-[#4f628d] bg-[rgba(79,98,141,.25)] px-2 py-0.5 text-[11px] text-[#d7e7ff]'
+                        key={`${plan.id}-${favorite}`}
+                      >
+                        {favorite}
+                      </span>
+                    ))}
+                  </div>
+
+                  <button
+                    className='mt-3 w-full rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] px-2 py-1 text-[12px] tracking-[0.1em] text-[#a0c4ff] transition hover:bg-[rgba(160,196,255,.16)]'
+                    onClick={() => applyPreconfiguredPlan(plan)}
+                    type='button'
+                  >
+                    USE PRESET
+                  </button>
+                </article>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -1085,10 +1322,64 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                 <input
                   className={INPUT_CLASS}
                   onChange={(event) => setPokemonSearch(event.target.value)}
-                  placeholder='Name, number, habitat, favorite'
+                  placeholder='Name, number, habitat, likes, specialty, location'
                   value={pokemonSearch}
                 />
               </label>
+
+              <div className='mt-2 grid gap-2 lg:grid-cols-3'>
+                <label className='space-y-1'>
+                  <span className='text-[12px] uppercase tracking-[0.1em] text-[#8ea4cf]'>
+                    Favorite Filter
+                  </span>
+                  <select
+                    className={INPUT_CLASS}
+                    onChange={(event) => setPokemonFavoriteFilter(event.target.value)}
+                    value={pokemonFavoriteFilter}
+                  >
+                    <option value='all'>All favorites</option>
+                    {pokemonFavoriteFilterOptions.map((favoriteName) => (
+                      <option key={`resident-favorite-${favoriteName}`} value={favoriteName}>
+                        {favoriteName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className='space-y-1'>
+                  <span className='text-[12px] uppercase tracking-[0.1em] text-[#8ea4cf]'>
+                    Likes Filter
+                  </span>
+                  <select
+                    className={INPUT_CLASS}
+                    onChange={(event) => setPokemonLikeFilter(event.target.value)}
+                    value={pokemonLikeFilter}
+                  >
+                    <option value='all'>All likes</option>
+                    {pokemonLikeFilterOptions.map((likeName) => (
+                      <option key={`resident-like-${likeName}`} value={likeName}>
+                        {likeName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <button
+                className={`mt-2 w-full rounded border px-2 py-1 text-[11px] tracking-[0.1em] transition ${
+                  similarToFirstResidentOnly
+                    ? "border-[#a0c4ff] bg-[rgba(160,196,255,.18)] text-[#d7e7ff]"
+                    : "border-[#3a3a5c] bg-white/5 text-[#9fb0d6] hover:bg-white/10"
+                }`}
+                onClick={() =>
+                  setSimilarToFirstResidentOnly((previous) => !previous)
+                }
+                type='button'
+              >
+                {similarToFirstResidentOnly
+                  ? `SIMILAR TO FIRST RESIDENT: ${selectedResidentNames[0] || "ON"}`
+                  : "SIMILAR TO FIRST RESIDENT: OFF"}
+              </button>
 
               <div className='mt-2 max-h-[220px] space-y-2 overflow-y-auto pr-1'>
                 {availablePokemonOptions.map((pokemon) => (
@@ -1115,6 +1406,11 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                         <p className='truncate text-[11px] text-[#8fa3cc]'>
                           #{pokemon.number} • {pokemon.idealHabitat}
                         </p>
+                        {(pokemon.habitatAttractions || []).length > 0 ? (
+                          <p className='truncate text-[11px] text-[#7fb0cc]'>
+                            Likes: {pokemon.habitatAttractions.slice(0, 2).join(" · ")}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <button
@@ -1136,37 +1432,60 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                 ) : (
                   selectedResidents.map((pokemon) => (
                     <div
-                      className='flex items-center justify-between gap-2 rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] p-2'
+                      className='rounded border border-[#3a3a5c] bg-[rgba(160,196,255,.08)] p-2'
                       key={`${pokemon.number}-${pokemon.name}`}
                     >
-                      <div className='flex min-w-0 items-center gap-2'>
-                        {pokemon.meta?.spriteUrl ? (
-                          <Image
-                            alt=''
-                            aria-hidden='true'
-                            className='h-9 w-9 object-contain'
-                            height={36}
-                            src={toPublicImageSrc(pokemon.meta.spriteUrl)}
-                            unoptimized
-                            width={36}
-                          />
-                        ) : null}
-                        <div className='min-w-0'>
-                          <p className='truncate text-[13px] font-semibold text-[#d8e4ff]'>
-                            {pokemon.name}
-                          </p>
-                          <p className='truncate text-[11px] text-[#8fa3cc]'>
-                            {pokemon.primaryLocation}
-                          </p>
+                      <div className='flex items-start justify-between gap-2'>
+                        <div className='flex min-w-0 items-center gap-2'>
+                          {pokemon.meta?.spriteUrl ? (
+                            <Image
+                              alt=''
+                              aria-hidden='true'
+                              className='h-9 w-9 object-contain'
+                              height={36}
+                              src={toPublicImageSrc(pokemon.meta.spriteUrl)}
+                              unoptimized
+                              width={36}
+                            />
+                          ) : null}
+                          <div className='min-w-0'>
+                            <p className='truncate text-[13px] font-semibold text-[#d8e4ff]'>
+                              {pokemon.name}
+                            </p>
+                            <p className='truncate text-[11px] text-[#8fa3cc]'>
+                              {pokemon.primaryLocation}
+                            </p>
+                          </div>
                         </div>
+                        <button
+                          className='rounded border border-[#5a2a2a] bg-[rgba(255,80,80,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#ff9090] transition hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white'
+                          onClick={() => removeResident(pokemon.name)}
+                          type='button'
+                        >
+                          REMOVE
+                        </button>
                       </div>
-                      <button
-                        className='rounded border border-[#5a2a2a] bg-[rgba(255,80,80,.08)] px-2 py-1 text-[11px] tracking-[0.1em] text-[#ff9090] transition hover:border-[#ff5050] hover:bg-[rgba(255,80,80,.2)] hover:text-white'
-                        onClick={() => removeResident(pokemon.name)}
-                        type='button'
-                      >
-                        REMOVE
-                      </button>
+
+                      <div className='mt-2 flex flex-wrap gap-1'>
+                        {(pokemon.favorites || []).map((favoriteName) => (
+                          <button
+                            className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
+                              selectedResidentFavoriteTag === favoriteName
+                                ? "border-[#a0c4ff] bg-[rgba(160,196,255,.2)] text-[#d7e7ff]"
+                                : "border-[#4f628d] bg-[rgba(79,98,141,.22)] text-[#d7e7ff] hover:bg-[rgba(160,196,255,.18)]"
+                            }`}
+                            key={`${pokemon.number}-${pokemon.name}-favorite-chip-${favoriteName}`}
+                            onClick={() =>
+                              setSelectedResidentFavoriteTag((previous) =>
+                                previous === favoriteName ? "" : favoriteName,
+                              )
+                            }
+                            type='button'
+                          >
+                            {favoriteName}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   ))
                 )}
@@ -1185,10 +1504,65 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                 <input
                   className={INPUT_CLASS}
                   onChange={(event) => setItemSearch(event.target.value)}
-                  placeholder='Name, section, favorite tag'
+                  placeholder='Name, section, favorite, source section, description'
                   value={itemSearch}
                 />
               </label>
+
+              <div className='mt-2 grid gap-2 sm:grid-cols-2'>
+                <label className='space-y-1'>
+                  <span className='text-[12px] uppercase tracking-[0.1em] text-[#8ea4cf]'>
+                    Favorite Filter
+                  </span>
+                  <select
+                    className={INPUT_CLASS}
+                    onChange={(event) => setItemFavoriteFilter(event.target.value)}
+                    value={itemFavoriteFilter}
+                  >
+                    <option value='all'>All favorites</option>
+                    {itemFavoriteFilterOptions.map((favoriteName) => (
+                      <option key={`item-favorite-${favoriteName}`} value={favoriteName}>
+                        {favoriteName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className='space-y-1'>
+                  <span className='text-[12px] uppercase tracking-[0.1em] text-[#8ea4cf]'>
+                    Likes Filter
+                  </span>
+                  <select
+                    className={INPUT_CLASS}
+                    onChange={(event) => setItemLikeFilter(event.target.value)}
+                    value={itemLikeFilter}
+                  >
+                    <option value='all'>All likes</option>
+                    {pokemonLikeFilterOptions.map((likeName) => (
+                      <option key={`item-like-${likeName}`} value={likeName}>
+                        {likeName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className='space-y-1'>
+                  <span className='text-[12px] uppercase tracking-[0.1em] text-[#8ea4cf]'>
+                    Resident Favorite Focus
+                  </span>
+                  <div className='flex min-h-[44px] items-center rounded-md border border-[#3a3a5c] bg-[rgba(12,12,24,.95)] px-3 text-[13px] text-[#d7e7ff]'>
+                    {selectedResidentFavoriteTag || "None selected"}
+                  </div>
+                </div>
+              </div>
+
+              {selectedResidentFavoriteTag ? (
+                <button
+                  className='mt-2 rounded border border-[#3a3a5c] bg-white/5 px-2 py-1 text-[11px] tracking-[0.1em] text-[#9fb0d6] transition hover:bg-white/10'
+                  onClick={() => setSelectedResidentFavoriteTag("")}
+                  type='button'
+                >
+                  CLEAR RESIDENT FAVORITE FOCUS
+                </button>
+              ) : null}
 
               <div className='mt-2 max-h-[220px] space-y-2 overflow-y-auto pr-1'>
                 {availableItemOptions.map((item) => (
@@ -1215,6 +1589,11 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                         <p className='truncate text-[11px] text-[#8fa3cc]'>
                           {item.sectionTitle}
                         </p>
+                        {(item.favorites || []).length > 0 ? (
+                          <p className='truncate text-[11px] text-[#7fb0cc]'>
+                            Fav: {item.favorites.slice(0, 3).join(" · ")}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <button
@@ -1245,7 +1624,7 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                             {item.name}
                           </p>
                           <p className='truncate text-[11px] text-[#8fa3cc]'>
-                            {item.sectionTitle}
+                            {(item.sectionLabels || [item.sectionTitle]).join(" · ")}
                           </p>
                         </div>
                         <button
@@ -1277,35 +1656,38 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
           <div className='space-y-4'>
             <div className='rounded-lg border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] p-3'>
               <h2 className='text-[15px] font-semibold uppercase tracking-[0.14em] text-[#a0c4ff]'>
-                Happiness Score
+                Comfort Level
               </h2>
 
               <div className='mt-3 rounded-lg border border-[#3a3a5c] bg-[rgba(160,196,255,.1)] p-4 text-center'>
-                <p className='text-[12px] uppercase tracking-[0.12em] text-[#8ea4cf]'>Total Happiness</p>
-                <p className='text-5xl font-extrabold text-[#e8efff]'>{happiness.score.toFixed(1)}%</p>
+                <p className='text-[12px] uppercase tracking-[0.12em] text-[#8ea4cf]'>Total Comfort</p>
+                <p className='text-5xl font-extrabold text-[#e8efff]'>{comfort.score.toFixed(1)}%</p>
                 <p className='mt-1 text-[12px] tracking-[0.08em] text-[#9fb0d6]'>
-                  Avg residents {happiness.residentAverage.toFixed(1)} • Occupancy {happiness.occupancyScore.toFixed(1)}
+                  Avg residents {comfort.residentAverage.toFixed(1)} • Occupancy {comfort.occupancyScore.toFixed(1)}
                 </p>
               </div>
 
               <div className='mt-3 grid gap-2 text-[12px] text-[#a9b8dc] sm:grid-cols-2'>
                 <div className='rounded border border-[#3a3a5c] bg-white/5 p-2'>
-                  Favorite coverage: {happiness.favoriteCoverageScore.toFixed(1)}
+                  Favorite coverage: {comfort.favoriteCoverageScore.toFixed(1)}
                 </div>
                 <div className='rounded border border-[#3a3a5c] bg-white/5 p-2'>
-                  Style variety: {happiness.varietyScore.toFixed(1)}
+                  Style variety: {comfort.varietyScore.toFixed(1)}
                 </div>
                 <div className='rounded border border-[#3a3a5c] bg-white/5 p-2'>
-                  Placed items: {happiness.totalPlacedItems}
+                  Placed items: {comfort.totalPlacedItems}
                 </div>
                 <div className='rounded border border-[#3a3a5c] bg-white/5 p-2'>
-                  Builder bonus: {happiness.builderBonus.toFixed(1)}
+                  Builder bonus: {comfort.builderBonus.toFixed(1)}
+                </div>
+                <div className='rounded border border-[#3a3a5c] bg-white/5 p-2'>
+                  Item density: {comfort.itemDensityScore.toFixed(1)}
                 </div>
               </div>
 
               <p className='mt-3 text-[12px] leading-relaxed tracking-[0.04em] text-[#8ea4cf]'>
-                Formula: resident favorite matches, ideal habitat match, Habitat Dex spawn compatibility,
-                attraction matching, occupancy, item favorite coverage, and style variety.
+                Formula: resident favorite matches, ideal habitat alignment, Habitat Dex spawn compatibility,
+                attraction matching, occupancy, item favorite coverage, style variety, and item density.
               </p>
             </div>
 
@@ -1314,13 +1696,13 @@ export function HousingPlanner({ pokemonDataset, habitatDataset, itemsDataset })
                 Resident Breakdown
               </h2>
 
-              {happiness.residentBreakdown.length === 0 ? (
+              {comfort.residentBreakdown.length === 0 ? (
                 <p className='mt-2 text-[12px] tracking-[0.08em] text-[#6f7ca0]'>
-                  Add residents to see per-pokemon happiness details.
+                  Add residents to see per-pokemon comfort details.
                 </p>
               ) : (
                 <div className='mt-2 space-y-2'>
-                  {happiness.residentBreakdown.map((row) => (
+                  {comfort.residentBreakdown.map((row) => (
                     <div
                       className='rounded border border-[#3a3a5c] bg-white/5 p-2'
                       key={row.resident}

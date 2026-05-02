@@ -1,4 +1,5 @@
 import dataset from "@/data/pokemon-data.json";
+import habitatDataset from "@/data/habitats-data.json";
 import { PokemonExplorer } from "@/components/PokemonExplorer";
 import { PokemonExplorerShell } from "@/components/PokemonExplorerShell";
 
@@ -11,7 +12,7 @@ export const metadata = {
 export default function PokemonExplorerPage() {
   return (
     <PokemonExplorerShell activeSection='directory' title='Pokemon Explorer'>
-      <PokemonExplorer dataset={dataset} />
+      <PokemonExplorer dataset={dataset} habitatDataset={habitatDataset} />
     </PokemonExplorerShell>
   );
 }

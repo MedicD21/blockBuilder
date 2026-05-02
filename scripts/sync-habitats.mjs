@@ -163,110 +163,184 @@ function parseRequirements(detailHtml) {
 }
 
 function parseAvailablePokemon(detailHtml) {
-  const sectionMatch = detailHtml.match(
-    /<h2>Available Pok[\s\S]*?<\/h2>[\s\S]*?<table class=["']dextable["'][\s\S]*?<\/table>/i,
-  );
-  if (!sectionMatch) return [];
+  const headingMatch = detailHtml.match(/<h2>Available Pok[\s\S]*?<\/h2>/i);
+  if (!headingMatch) return [];
 
-  const sectionHtml = sectionMatch[0];
+  const headingIndex = headingMatch.index ?? -1;
+  if (headingIndex < 0) return [];
 
-  const nameEntries = [];
-  for (const match of sectionHtml.matchAll(
-    /<td\s+class=["']fooevo["']>\s*<a\s+href=(["'])(\/pokemonpokopia\/pokedex\/[^"<>]+\.shtml)\1[^>]*>([^<]+)<\/a>\s*<\/td>/gi,
-  )) {
-    const pokedexPath = decodeHtmlEntities(match[2] || "");
-    const name = cleanText(match[3] || "");
-    if (!name || !pokedexPath) continue;
-    nameEntries.push({ name, pokedexPath });
-  }
+  const tableStart = detailHtml.indexOf("<table", headingIndex);
+  if (tableStart < 0) return [];
 
-  const imageEntries = [];
-  for (const match of sectionHtml.matchAll(
-    /<a\s+href=(["'])(\/pokemonpokopia\/pokedex\/[^"<>]+\.shtml)\1[^>]*>\s*<img\s+src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>\s*<\/a>/gi,
-  )) {
-    imageEntries.push({
-      pokedexPath: decodeHtmlEntities(match[2] || ""),
-      spriteUrl: toAbsoluteHabitatImageUrl(match[3] || ""),
-      spriteAlt: cleanText(match[4] || ""),
-    });
-  }
+  const sectionTableHtml = extractTagWithNesting(detailHtml, tableStart, "table");
+  if (!sectionTableHtml) return [];
 
-  const locationEntries = [];
-  for (const locationCellMatch of sectionHtml.matchAll(
-    /<td class=["']fooinfo["']\s+valign=["']top["']>\s*<b>Location<\/b>:[\s\S]*?<\/td>/gi,
-  )) {
-    const cellHtml = locationCellMatch[0] || "";
-    const locations = [];
-    for (const locationMatch of cellHtml.matchAll(
-      /\/pokemonpokopia\/locations\/[^"']+\.shtml"><u>([^<]+)<\/u>/gi,
-    )) {
-      const locationName = cleanText(locationMatch[1] || "");
-      if (locationName) locations.push(locationName);
-    }
-    locationEntries.push(Array.from(new Set(locations)));
-  }
-
-  const rarityEntries = [];
-  for (const rarityCellMatch of sectionHtml.matchAll(
-    /<td class=["']fooinfo["']>\s*<b>Rarity<\/b>:[\s\S]*?<br \/>\s*([^<\n\r]+)/gi,
-  )) {
-    rarityEntries.push(cleanText(rarityCellMatch[1] || ""));
-  }
-
-  const maxCount = Math.max(
-    nameEntries.length,
-    imageEntries.length,
-    locationEntries.length,
-    rarityEntries.length,
-  );
+  const rows = extractTopLevelTagBlocks(sectionTableHtml, "tr", 1);
+  if (rows.length === 0) return [];
 
   const entries = [];
-  for (let index = 0; index < maxCount; index += 1) {
-    const nameEntry = nameEntries[index] || imageEntries[index] || {};
-    const imageEntry = imageEntries[index] || {};
+  let activeGroup = [];
+  let blockIndex = 0;
 
-    const name = cleanText(nameEntry.name || imageEntry.spriteAlt || "");
-    const pokedexPath = decodeHtmlEntities(nameEntry.pokedexPath || imageEntry.pokedexPath || "");
-    if (!name || !pokedexPath) continue;
+  for (const rowHtml of rows) {
+    const cells = extractTopLevelTagBlocks(rowHtml, "td", 0);
+    if (cells.length === 0) continue;
 
-    entries.push({
-      id: `spawn-${normalizeSlug(name)}-${index + 1}`,
-      name,
-      pokedexPath,
-      pokedexUrl: toAbsolutePokopiaUrl(pokedexPath),
-      spriteUrl: imageEntry.spriteUrl || "",
-      spriteAlt: imageEntry.spriteAlt || name,
-      rarity: cleanText(rarityEntries[index] || ""),
-      locations: locationEntries[index] || [],
-    });
-  }
+    const hasNameCells = cells.some(
+      (cellHtml) =>
+        /class=["']fooevo["']/i.test(cellHtml) &&
+        /\/pokemonpokopia\/pokedex\/[^"<>]+\.shtml/i.test(cellHtml),
+    );
 
-  const uniqueByPath = new Map();
-  for (const entry of entries) {
-    if (!entry.pokedexPath) continue;
-    if (!uniqueByPath.has(entry.pokedexPath)) {
-      uniqueByPath.set(entry.pokedexPath, entry);
+    if (hasNameCells) {
+      blockIndex += 1;
+      activeGroup = [];
+
+      for (let cellIndex = 0; cellIndex < cells.length; cellIndex += 1) {
+        const cellHtml = cells[cellIndex];
+        const anchorMatch = cellHtml.match(
+          /<a\s+href=(["'])(\/pokemonpokopia\/pokedex\/[^"<>]+\.shtml)\1[^>]*>(?:\s*<u>)?([^<]+)(?:<\/u>)?\s*<\/a>/i,
+        );
+        if (!anchorMatch) continue;
+
+        const pokedexPath = decodeHtmlEntities(anchorMatch[2] || "");
+        const name = cleanText(anchorMatch[3] || "");
+        if (!pokedexPath || !name) continue;
+
+        const id = `spawn-${normalizeSlug(name)}-${blockIndex}-${cellIndex + 1}`;
+        const entry = {
+          id,
+          name,
+          pokedexPath,
+          pokedexUrl: toAbsolutePokopiaUrl(pokedexPath),
+          spriteUrl: "",
+          spriteAlt: name,
+          rarity: "",
+          locations: [],
+          timeOfDay: [],
+          weather: [],
+        };
+
+        entries.push(entry);
+        activeGroup.push(entry);
+      }
+
       continue;
     }
 
-    const existing = uniqueByPath.get(entry.pokedexPath);
-    if (!existing.spriteUrl && entry.spriteUrl) existing.spriteUrl = entry.spriteUrl;
-    if (!existing.rarity && entry.rarity) existing.rarity = entry.rarity;
-    if (existing.locations.length === 0 && entry.locations.length > 0) {
-      existing.locations = entry.locations;
+    if (activeGroup.length === 0) continue;
+
+    const rowHasSprites = cells.some((cellHtml) =>
+      /\/pokemonpokopia\/pokemon\/small\//i.test(cellHtml),
+    );
+    if (rowHasSprites) {
+      for (let index = 0; index < cells.length; index += 1) {
+        const entry = activeGroup[index];
+        if (!entry) continue;
+
+        const spriteMatch = cells[index].match(
+          /<img\s+src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>/i,
+        );
+        if (!spriteMatch) continue;
+
+        entry.spriteUrl = toAbsoluteHabitatImageUrl(spriteMatch[1] || "");
+        entry.spriteAlt = cleanText(spriteMatch[2] || entry.name);
+      }
+      continue;
+    }
+
+    const rowHasLocations = cells.some((cellHtml) => /<b>Location<\/b>/i.test(cellHtml));
+    if (rowHasLocations) {
+      for (let index = 0; index < cells.length; index += 1) {
+        const entry = activeGroup[index];
+        if (!entry) continue;
+
+        const locations = [];
+        for (const locationMatch of cells[index].matchAll(
+          /\/pokemonpokopia\/locations\/[^"']+\.shtml"><u>([^<]+)<\/u>/gi,
+        )) {
+          const locationName = cleanText(locationMatch[1] || "");
+          if (locationName) locations.push(locationName);
+        }
+        entry.locations = Array.from(new Set(locations));
+      }
+      continue;
+    }
+
+    const rowHasRarity = cells.some((cellHtml) => /<b>Rarity<\/b>/i.test(cellHtml));
+    if (rowHasRarity) {
+      for (let index = 0; index < cells.length; index += 1) {
+        const entry = activeGroup[index];
+        if (!entry) continue;
+
+        const rarityMatch = cells[index].match(
+          /<b>Rarity<\/b>:\s*<br \/>\s*([^<\n\r]+)/i,
+        );
+        entry.rarity = cleanText(rarityMatch?.[1] || "");
+      }
+      continue;
+    }
+
+    const rowHasTimeWeather = cells.some(
+      (cellHtml) =>
+        /<b>Time<\/b>/i.test(cellHtml) || /<b>Weather<\/b>/i.test(cellHtml),
+    );
+    if (rowHasTimeWeather) {
+      for (let index = 0; index < cells.length; index += 1) {
+        const entry = activeGroup[index];
+        if (!entry) continue;
+
+        const valueColumns = [];
+        for (const valueMatch of cells[index].matchAll(
+          /<td[^>]*valign=["']top["'][^>]*>([\s\S]*?)(?:<\/td>|<\/tr>)/gi,
+        )) {
+          const lines = decodeHtmlEntities(valueMatch[1] || "")
+            .replace(/<br\s*\/?>/gi, "\n")
+            .split("\n")
+            .map((line) => cleanText(line))
+            .filter(Boolean);
+          if (lines.length > 0) valueColumns.push(lines);
+        }
+
+        let timeValues = valueColumns[0] || [];
+        let weatherValues = valueColumns[1] || [];
+
+        if (valueColumns.length === 1) {
+          const knownTime = new Set(["Morning", "Day", "Evening", "Night"]);
+          const knownWeather = new Set(["Sun", "Cloud", "Rain"]);
+
+          const fallbackTime = [];
+          const fallbackWeather = [];
+          for (const value of valueColumns[0]) {
+            if (knownTime.has(value)) fallbackTime.push(value);
+            if (knownWeather.has(value)) fallbackWeather.push(value);
+          }
+
+          if (fallbackTime.length > 0) timeValues = fallbackTime;
+          if (fallbackWeather.length > 0) weatherValues = fallbackWeather;
+        }
+
+        entry.timeOfDay = Array.from(new Set(timeValues));
+        entry.weather = Array.from(new Set(weatherValues));
+      }
     }
   }
 
-  return Array.from(uniqueByPath.values());
+  return entries;
 }
 
 function countExpectedSpawnEntries(detailHtml) {
-  const sectionMatch = detailHtml.match(
-    /<h2>Available Pok[\s\S]*?<\/h2>[\s\S]*?<table class=["']dextable["'][\s\S]*?<\/table>/i,
-  );
-  if (!sectionMatch) return 0;
+  const headingMatch = detailHtml.match(/<h2>Available Pok[\s\S]*?<\/h2>/i);
+  if (!headingMatch) return 0;
 
-  const sectionHtml = sectionMatch[0];
+  const headingIndex = headingMatch.index ?? -1;
+  if (headingIndex < 0) return 0;
+
+  const tableStart = detailHtml.indexOf("<table", headingIndex);
+  if (tableStart < 0) return 0;
+
+  const sectionHtml = extractTagWithNesting(detailHtml, tableStart, "table");
+  if (!sectionHtml) return 0;
   const expected = new Set();
 
   for (const match of sectionHtml.matchAll(/\/pokemonpokopia\/pokedex\/[^"<>]+\.shtml/gi)) {
@@ -277,6 +351,81 @@ function countExpectedSpawnEntries(detailHtml) {
   }
 
   return expected.size;
+}
+
+function extractTagWithNesting(html, startIndex, tagName) {
+  const matcher = new RegExp(`<\\/?${tagName}\\b[^>]*>`, "gi");
+  matcher.lastIndex = startIndex;
+
+  let depth = 0;
+  let start = -1;
+  let match;
+  while ((match = matcher.exec(html))) {
+    const token = match[0];
+    const lowerToken = token.toLowerCase();
+    const isClosing = lowerToken.startsWith(`</${tagName}`);
+    const isSelfClosing = lowerToken.endsWith("/>");
+
+    if (start === -1) {
+      if (isClosing) continue;
+      start = match.index;
+      depth = 1;
+      if (isSelfClosing) {
+        return html.slice(start, matcher.lastIndex);
+      }
+      continue;
+    }
+
+    if (!isClosing && !isSelfClosing) {
+      depth += 1;
+      continue;
+    }
+
+    if (isClosing) {
+      depth -= 1;
+      if (depth === 0) {
+        return html.slice(start, matcher.lastIndex);
+      }
+    }
+  }
+
+  return "";
+}
+
+function extractTopLevelTagBlocks(containerHtml, tagName, requiredTableDepth) {
+  const tokens = new RegExp(`<(\\/)?(${tagName}|table)\\b[^>]*>`, "gi");
+  const blocks = [];
+
+  let tableDepth = 0;
+  let captureStart = -1;
+  let match;
+
+  while ((match = tokens.exec(containerHtml))) {
+    const isClosing = Boolean(match[1]);
+    const tokenName = String(match[2] || "").toLowerCase();
+
+    if (tokenName === "table") {
+      if (!isClosing) {
+        tableDepth += 1;
+      } else {
+        tableDepth = Math.max(0, tableDepth - 1);
+      }
+      continue;
+    }
+
+    if (tokenName !== tagName) continue;
+
+    if (!isClosing) {
+      if (tableDepth === requiredTableDepth && captureStart === -1) {
+        captureStart = match.index;
+      }
+    } else if (captureStart !== -1 && tableDepth === requiredTableDepth) {
+      blocks.push(containerHtml.slice(captureStart, tokens.lastIndex));
+      captureStart = -1;
+    }
+  }
+
+  return blocks;
 }
 
 function parseFlavorText(detailHtml) {

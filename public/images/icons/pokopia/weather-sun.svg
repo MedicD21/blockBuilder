@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Sunny">
+  <rect width="24" height="24" rx="4" fill="#7f96f0"/>
+  <circle cx="12" cy="12" r="4" fill="#ffffff"/>
+  <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round">
+    <path d="M12 3.7v2.5"/>
+    <path d="M12 17.8v2.5"/>
+    <path d="M3.7 12h2.5"/>
+    <path d="M17.8 12h2.5"/>
+    <path d="M6.4 6.4l1.8 1.8"/>
+    <path d="M15.8 15.8l1.8 1.8"/>
+    <path d="M17.6 6.4l-1.8 1.8"/>
+    <path d="M8.2 15.8l-1.8 1.8"/>
+  </g>
+</svg>
