@@ -1,5 +1,6 @@
 import './globals.css';
 import Image from 'next/image';
+import JumpToTopButton from '@/components/JumpToTopButton';
 
 export const metadata = {
   title: 'Pokopia Block Builder',
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
+        <JumpToTopButton />
         <a
           aria-label='Buy me a coffee'
           className='bmc-fixed-button'

@@ -464,28 +464,40 @@ export function PokemonExplorer({ dataset, habitatDataset }) {
             role='dialog'
           >
             <div className='mb-2 flex items-start justify-between gap-3'>
-              <div className='min-w-0'>
-                <div className='mb-2 flex items-center gap-2'>
-                  <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
-                    {activePokemonModal.displayNumber}
-                  </span>
-                  {activePokemonModal.pokemon.meta?.rarity ? (
-                    <span
-                      className={`${CHIP_BASE_CLASS} ${chipTone(activePokemonModal.pokemon.meta.rarity, RARITY_CHIP_CLASSES)}`}
-                    >
-                      {activePokemonModal.pokemon.meta.rarity}
+              <div className='flex min-w-0 items-start gap-3'>
+                {activePokemonModal.pokemon.meta?.spriteUrl ? (
+                  <Image
+                    alt={activePokemonModal.pokemon.name}
+                    className='h-16 w-16 flex-shrink-0 rounded-md border border-[#3a3a5c] bg-[rgba(255,255,255,.03)] p-1 object-contain sm:h-20 sm:w-20'
+                    height={80}
+                    src={toPublicImageSrc(activePokemonModal.pokemon.meta.spriteUrl)}
+                    unoptimized
+                    width={80}
+                  />
+                ) : null}
+                <div className='min-w-0'>
+                  <div className='mb-2 flex items-center gap-2'>
+                    <span className='rounded-full border border-[#3a3a5c] bg-[rgba(160,196,255,.14)] px-2 py-1 text-[13px] font-bold tracking-[0.08em] text-[#a0c4ff]'>
+                      {activePokemonModal.displayNumber}
                     </span>
-                  ) : null}
+                    {activePokemonModal.pokemon.meta?.rarity ? (
+                      <span
+                        className={`${CHIP_BASE_CLASS} ${chipTone(activePokemonModal.pokemon.meta.rarity, RARITY_CHIP_CLASSES)}`}
+                      >
+                        {activePokemonModal.pokemon.meta.rarity}
+                      </span>
+                    ) : null}
+                  </div>
+                  <h3
+                    className='break-words text-3xl font-bold text-[#e6edff]'
+                    id='pokemon-modal-title'
+                  >
+                    {activePokemonModal.pokemon.name}
+                  </h3>
+                  <p className='mt-1 text-[15px] text-[#8a8aa8]'>
+                    {activePokemonModal.pokemon.primaryLocation}
+                  </p>
                 </div>
-                <h3
-                  className='break-words text-3xl font-bold text-[#e6edff]'
-                  id='pokemon-modal-title'
-                >
-                  {activePokemonModal.pokemon.name}
-                </h3>
-                <p className='mt-1 text-[15px] text-[#8a8aa8]'>
-                  {activePokemonModal.pokemon.primaryLocation}
-                </p>
               </div>
 
               <button
