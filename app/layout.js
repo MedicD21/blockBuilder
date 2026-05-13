@@ -1,6 +1,7 @@
 import './globals.css';
 import Image from 'next/image';
 import JumpToTopButton from '@/components/JumpToTopButton';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   title: 'Pokopia Block Builder',
@@ -36,6 +37,7 @@ export default function RootLayout({ children }) {
           />
           <span className='bmc-fixed-text'>Buy me a coffee</span>
         </a>
+        <Analytics />
       </body>
     </html>
   );
